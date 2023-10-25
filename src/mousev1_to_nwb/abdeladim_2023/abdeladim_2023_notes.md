@@ -1,21 +1,54 @@
 # Notes concerning the abdeladim_2023 conversion
 ## Experimental protocol:
 Holographic emulation of visually evoked neural activity at the mesoscale by specific co-activation of functionally defined ensembles. We further showed how one can use this system to probe functional interactions between distant brain regions. Finally, we showed that we can decode the identity of the specific photo-stimulus purely from the modulation of activity of postsynaptic neurons in downstream areas.
+
 ## Data streams:
 **From Scope of the Work:**
-- imaging data (Scan Image),
+- imaging data (ScanImage),
 - segmentation (Suite2P), 
-- Holographic stimulation (ndx-holographic stimulation), missing
+- Holographic stimulation (Custom Matlab code), missing
 - behavior (Videos), missing
 - event annotations including stimulation events.(?) missing
 
 **From [Paper](https://www.biorxiv.org/content/10.1101/2023.03.02.530875v2.full):**
 - imaging data (Scan Image),
 - segmentation (Suite2P), 
-- Holographic stimulation (ndx-holographic stimulation)
+- Holographic stimulation 
 - Visual stimulation
 - retinotopy
+(Custom Matlab code was used for control of the photostimulation path hardware, synchronization with imaging and control of the visual stimulation)
 (no mention of behavioural videos)
+
+**From Data exploraton:**
+- imaging data (ScanImage): 
+    - shape of image on a single tif (open with tifffile): n_volumes:96, n_channels:2, n_xpixels:512, n_ypixels:512 (sometimes 93 not 96). 
+    NB: From [ScanImage](https://docs.scanimage.org/Concepts/Volume+Imaging.html?highlight=frames+per+volume) doc
+        >Number of Volumes: This indicates the number of times, if any, that the  stack, or single volume, should be repetitively acquired.
+    - shape of image on a single tif (open with ScanImageTiffReader): (n_channels x n_planes x n_repetition):192, n_xpixels:512, n_ypixels:512
+    where can we get *n_repetition*?
+        From [analysis code](https://github.com/willyh101/analysis/blob/5bd562ca531a6cc9ce9a57ed76229d89a8fcb82d/holofun/si_tiff.py#L157C1-L170C68), the way we slice the data in the tif: 
+        ```
+        slice((z_idx*nchannels)+ch_idx, None, nplanes*nchannels) 
+        ```
+        This means that its a stack of frames that should be acquired as follow:
+        1. plane0, Channel 1/green
+        2. plane0, Channel 2/red
+        3. plane1, Channel 1/green
+        4. plane1, Channel 2/red
+        5. plane2, Channel 1/green
+        6. plane2, Channel 2/red 
+        ...repeat       
+    - from metadata extracted with `extract_extra_metadata` function 
+        - SI.hChannels.channelMergeColor : {'green';'red';'red';'red'}
+        - SI.hChannels.channelName : {'Channel 1' 'Channel 2' 'Channel 3' 'Channel 4'}
+        - SI.hChannels.channelOffset : [-6314 -855 -90 -249]
+        - SI.hChannels.channelSave : [1;2]
+        - SI.hStackManager.actualNumSlices : 3
+        - SI.hStackManager.actualNumVolumes : 100
+        - SI.hStackManager.actualStackZStepSize : 30
+        - SI.hStackManager.framesPerSlice : 1
+
+- segmentation (Suite2P), #TODO
 ## Data organisation: 
 - Raw tiff: 7 epochs (link to behaviour I assume) - not clear what the abbreviations stands for:
     - ret ?
@@ -52,3 +85,4 @@ From SetupDaqFile class in holofun, I see there is a lot of metadata that must g
 ## Lab code:
 [willyh101/analysis](https://github.com/willyh101/analysis/tree/5bd562ca531a6cc9ce9a57ed76229d89a8fcb82d)
 [adesnik-lab/holography](https://github.com/adesnik-lab/holography/tree/main)
+

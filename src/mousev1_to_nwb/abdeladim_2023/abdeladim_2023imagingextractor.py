@@ -33,8 +33,6 @@ class Abdeladim2023VolumetricImagingExtractor(ImagingExtractor):
             for file_path in tif_file_paths
         ]
 
-        self._num_frames = sum([extractor.get_num_frames() for extractor in self.imaging_extractors])
-
     def get_frames(self, frame_idxs: ArrayType) -> np.ndarray:
         """Get specific video frames from indices (not necessarily continuous).
 
@@ -57,7 +55,7 @@ class Abdeladim2023VolumetricImagingExtractor(ImagingExtractor):
             return self.get_video(start_frame=frame_idxs[0], end_frame=frame_idxs[-1] + 1)
 
     def get_num_frames(self) -> int:
-        return self._num_frames
+        return sum([extractor.get_num_frames() for extractor in self.imaging_extractors])
 
     def _get_single_frame(self, frame: int) -> np.ndarray:
         """Get a single frame of data from the TIFF file.
@@ -97,10 +95,10 @@ class Abdeladim2023VolumetricImagingExtractor(ImagingExtractor):
             video = np.append(video, extractor.get_video())
 
         return video[:, :, :, start:end]
-    
+
     def get_channel_names(self):
         return self.imaging_extractors[0].get_channel_names()
-    
+
     def get_image_size(self):
         return self.imaging_extractors[0].get_image_size()
 

@@ -35,7 +35,19 @@ https://www.sciencedirect.com/science/article/pii/S2211124723009208
 
 **From [Paper3](https://www.sciencedirect.com/science/article/pii/S2211124723009208):**
 
-**From Data exploraton:**
+### Data exploraton:
+#### Imaging data (ScanImage):
+
+**General checks**
+
+-[x] Each tif. file in the session folder hase the same starting session datetime and sampling frequency
+-[x] Regular sampling frequency over the timestamps extracted from all files in the session folder. NB: extract timestamp as in line 164-166 scanimagetiddimagingextractor.py --> **No regular sampling frequency** 
+In particular, some of the .tif file have regular timestamps (round robin 19.0686 Hz, circa 6.35 Hz per slice), some not.
+--> save timestamps not sampling frequency? (option not implemented in Scan Image interface/extractor)
+--> the sampling frequency currently extracted in scan image extratctor is referred to the round robin frequency not the one of single channel acquisition
+--> does the extractor account for dropped frames? 
+-------------------------------------
+**FOLLOWING: is all taken care by ScanImage interface and extractor**
 - imaging data (ScanImage): 
     - shape of image on a single tif (open with tifffile): n_volumes:96, n_channels:2, n_xpixels:512, n_ypixels:512 (sometimes 93 not 96). 
     NB: From [ScanImage](https://docs.scanimage.org/Concepts/Volume+Imaging.html?highlight=frames+per+volume) doc
@@ -63,6 +75,8 @@ https://www.sciencedirect.com/science/article/pii/S2211124723009208
         - SI.hStackManager.actualNumVolumes : 100
         - SI.hStackManager.actualStackZStepSize : 30
         - SI.hStackManager.framesPerSlice : 1
+---------------------------
+
 
 - segmentation (Suite2P), #TODO
 ## Data organisation: 

@@ -5,9 +5,7 @@ from roiextractors.extractors.tiffimagingextractors.scanimagetiffimagingextracto
     ScanImageTiffMultiPlaneImagingExtractor,
     ScanImageTiffSinglePlaneImagingExtractor,
 )
-from roiextractors.extractors.tiffimagingextractors.brukertiffimagingextractor import (
-    BrukerTiffMultiPlaneImagingExtractor,
-)
+
 from roiextractors.imagingextractor import ImagingExtractor
 from roiextractors.multiimagingextractor import MultiImagingExtractor
 
@@ -37,6 +35,8 @@ class Abdeladim2023MultiPlaneImagingExtractor(ImagingExtractor):
         ]
 
         self.imaging_extractor = MultiImagingExtractor(imaging_extractors)
+        times = self.imaging_extractor._get_times()
+        self.set_times(times=times)
 
     def get_frames(self, frame_idxs: ArrayType) -> np.ndarray:
         """Get specific video frames from indices (not necessarily continuous).
@@ -111,6 +111,8 @@ class Abdeladim2023SinglePlaneImagingExtractor(ImagingExtractor):
         ]
 
         self.imaging_extractor = MultiImagingExtractor(imaging_extractors)
+        times = self.imaging_extractor._get_times()
+        self.set_times(times=times)
 
     def get_frames(self, frame_idxs: ArrayType) -> np.ndarray:
         """Get specific video frames from indices (not necessarily continuous).

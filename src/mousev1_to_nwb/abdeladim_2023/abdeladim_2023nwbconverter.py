@@ -6,15 +6,17 @@ from neuroconv.datainterfaces import (
     PhySortingInterface,
 )
 
-from mousev1_to_nwb.abdeladim_2023 import Abdeladim2023BehaviorInterface
+from abdeladim_2023imaginginterface import Abdeladim2023SinglePlaneImagingInterface
 
 
 class Abdeladim2023NWBConverter(NWBConverter):
     """Primary conversion class for my extracellular electrophysiology dataset."""
 
     data_interface_classes = dict(
-        Recording=SpikeGLXRecordingInterface,
-        LFP=SpikeGLXLFPInterface,
-        Sorting=PhySortingInterface,
-        Behavior=Abdeladim2023BehaviorInterface,
+        ImagingChannel1Plane0=Abdeladim2023SinglePlaneImagingInterface,
+        ImagingChannel1Plane1=Abdeladim2023SinglePlaneImagingInterface,
+        ImagingChannel1Plane2=Abdeladim2023SinglePlaneImagingInterface,        
+        ImagingChannel2Plane0=Abdeladim2023SinglePlaneImagingInterface,
+        ImagingChannel2Plane1=Abdeladim2023SinglePlaneImagingInterface,
+        ImagingChannel2Plane2=Abdeladim2023SinglePlaneImagingInterface,
     )

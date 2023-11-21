@@ -8,7 +8,7 @@ from roiextractors.extractors.tiffimagingextractors.scanimagetiffimagingextracto
 
 from roiextractors.imagingextractor import ImagingExtractor
 from roiextractors.multiimagingextractor import MultiImagingExtractor
-
+from neuroconv.utils import FolderPathType
 from roiextractors.extraction_tools import PathType, FloatType, ArrayType, DtypeType, get_package
 import numpy as np
 
@@ -22,7 +22,7 @@ class Abdeladim2023MultiPlaneImagingExtractor(ImagingExtractor):
 
     def __init__(
         self,
-        folder_path: PathType,
+        folder_path: FolderPathType,
         channel_name: Optional[str] = None,
     ) -> None:
         self.folder_path = Path(folder_path)
@@ -95,7 +95,7 @@ class Abdeladim2023SinglePlaneImagingExtractor(ImagingExtractor):
 
     def __init__(
         self,
-        folder_path: PathType,
+        folder_path: FolderPathType,
         channel_name: str,
         plane_name: str,
     ) -> None:
@@ -114,7 +114,7 @@ class Abdeladim2023SinglePlaneImagingExtractor(ImagingExtractor):
         times = self.imaging_extractor._get_times()
         self.set_times(times=times)
 
-    def get_frames(self, frame_idxs: ArrayType) -> np.ndarray:
+    def get_frames(self, frame_idxs: ArrayType,channel: Optional[int] = 0) -> np.ndarray:
         """Get specific video frames from indices (not necessarily continuous).
 
         Parameters
@@ -132,7 +132,7 @@ class Abdeladim2023SinglePlaneImagingExtractor(ImagingExtractor):
     def get_num_frames(self) -> int:
         return self.imaging_extractor.get_num_frames()
 
-    def get_video(self, start_frame: Optional[int] = None, end_frame: Optional[int] = None) -> np.ndarray:
+    def get_video(self, start_frame: Optional[int] = None, end_frame: Optional[int] = None,channel: Optional[int] = 0) -> np.ndarray:
         """Get the video frames.
 
         Parameters

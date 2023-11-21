@@ -1,14 +1,16 @@
 NWBFile:
   related_publications:
-    https://doi.org/### or link to APA or MLA citation of the publication
+    - https://www.biorxiv.org/content/10.1101/2023.03.02.530875v2.full
+    - https://www.biorxiv.org/content/10.1101/2022.09.20.508739v1.full
+    - https://www.sciencedirect.com/science/article/pii/S2211124723009208
   session_description:
     A rich text description of the experiment. Can also just be the abstract of the publication.
   institution: Institution where the lab is located
   lab: Mousev1
   experimenter:
-    - Last, First Middle
-    - Last, First Middle
+    - Abdeladim, Lamiae
+    - Adesnik, Hillel
 Subject:
   species: Rattus norvegicus
-  age: TBD  # in ISO 8601, such as "P1W2D"
-  sex: TBD  # One of M, F, U, or O
+  age: P1W2D  #TODO check
+  sex: U  #TODO check

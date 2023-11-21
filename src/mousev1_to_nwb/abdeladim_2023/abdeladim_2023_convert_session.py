@@ -1,71 +1,80 @@
 """Primary script to run to convert an entire session for of data using the NWBConverter."""
 from pathlib import Path
 from typing import Union
+import glob
 import datetime
 from zoneinfo import ZoneInfo
 
 from neuroconv.utils import load_dict_from_file, dict_deep_update
 
-from mousev1_to_nwb.abdeladim_2023 import Abdeladim2023NWBConverter
+from roiextractors.extractors.tiffimagingextractors.scanimagetiffimagingextractor import (
+    ScanImageTiffSinglePlaneImagingExtractor,
+)
+from abdeladim_2023nwbconverter import Abdeladim2023NWBConverter
 
 
-def session_to_nwb(data_dir_path: Union[str, Path], output_dir_path: Union[str, Path], stub_test: bool = False):
-
+def session_to_nwb(
+    data_dir_path: Union[str, Path], output_dir_path: Union[str, Path], session_id: str, stub_test: bool = False
+):
     data_dir_path = Path(data_dir_path)
     output_dir_path = Path(output_dir_path)
     if stub_test:
         output_dir_path = output_dir_path / "nwb_stub"
     output_dir_path.mkdir(parents=True, exist_ok=True)
-
-    session_id = "subject_identifier_usually"
+    subject_id = "unknown"  # TODO ask for subject_id
     nwbfile_path = output_dir_path / f"{session_id}.nwb"
 
     source_data = dict()
     conversion_options = dict()
 
-    # Add Recording
-    source_data.update(dict(Recording=dict()))
-    conversion_options.update(dict(Recording=dict()))
-
-    # Add LFP
-    source_data.update(dict(LFP=dict()))
-    conversion_options.update(dict(LFP=dict()))
-
-    # Add Sorting
-    source_data.update(dict(Sorting=dict()))
-    conversion_options.update(dict(Sorting=dict()))
-
-    # Add Behavior
-    source_data.update(dict(Behavior=dict()))
-    conversion_options.update(dict(Behavior=dict()))
+    # Add Imaging
+    imaging_path = data_dir_path / "raw-tiffs" / session_id
+    tif_files = sorted(glob.glob(f"{imaging_path}/*.tif"))
+    available_channels = ScanImageTiffSinglePlaneImagingExtractor.get_available_channels(file_path=tif_files[0])
+    available_planes = ScanImageTiffSinglePlaneImagingExtractor.get_available_planes(file_path=tif_files[0])
+    photon_series_index = 0
+    for channel in available_channels:
+        for plane in available_planes:
+            channel_name_without_space = channel.replace(" ", "")
+            interface_name = f"Imaging{channel_name_without_space}Plane{plane}"
+            source_data[interface_name] = {
+                "folder_path": str(imaging_path),
+                "channel_name": channel,
+                "plane_name": plane,
+            }
+            conversion_options[interface_name] = {"stub_test": stub_test, "photon_series_index": photon_series_index}
+            photon_series_index += 1
 
     converter = Abdeladim2023NWBConverter(source_data=source_data)
 
     # Add datetime to conversion
     metadata = converter.get_metadata()
-    datetime.datetime(
-        year=2020, month=1, day=1, tzinfo=ZoneInfo("US/Eastern")
-    )
-    date = datetime.datetime.today()  # TO-DO: Get this from author
-    metadata["NWBFile"]["session_start_time"] = date
 
     # Update default metadata with the editable in the corresponding yaml file
     editable_metadata_path = Path(__file__).parent / "abdeladim_2023_metadata.yaml"
     editable_metadata = load_dict_from_file(editable_metadata_path)
     metadata = dict_deep_update(metadata, editable_metadata)
-
+    metadata = dict_deep_update(metadata, {"Subject": {"subject_id": subject_id}})
     # Run conversion
-    converter.run_conversion(metadata=metadata, nwbfile_path=nwbfile_path, conversion_options=conversion_options)
+    converter.run_conversion(
+        metadata=metadata, 
+        nwbfile_path=nwbfile_path, 
+        conversion_options=conversion_options, 
+        overwrite=True
+    )
 
 
 if __name__ == "__main__":
-
     # Parameters for conversion
-    data_dir_path = Path("/Directory/With/Raw/Formats/")
-    output_dir_path = Path("~/conversion_nwb/")
-    stub_test = False
+    root_path = Path(f"/media/amtra/Samsung_T5/CN_data")
+    data_dir_path = root_path / "MouseV1-to-nwb"
+    output_dir_path = root_path / "MouseV1-to-nwb-conversion_nwb/"
+    stub_test = True
+    session_id = "7expt"  # "2ret","3ori","4ori","5stim","6stim","7expt"
 
-    session_to_nwb(data_dir_path=data_dir_path,
-                    output_dir_path=output_dir_path,
-                    stub_test=stub_test,
-                    )
+    session_to_nwb(
+        data_dir_path=data_dir_path,
+        output_dir_path=output_dir_path,
+        session_id=session_id,
+        stub_test=stub_test,
+    )

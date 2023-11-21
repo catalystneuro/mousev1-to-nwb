@@ -7,9 +7,7 @@ from zoneinfo import ZoneInfo
 
 from neuroconv.utils import load_dict_from_file, dict_deep_update
 
-from roiextractors.extractors.tiffimagingextractors.scanimagetiffimagingextractor import (
-    ScanImageTiffSinglePlaneImagingExtractor,
-)
+from abdeladim_2023imaginginterface import Abdeladim2023SinglePlaneImagingInterface
 from abdeladim_2023nwbconverter import Abdeladim2023NWBConverter
 
 
@@ -29,9 +27,8 @@ def session_to_nwb(
 
     # Add Imaging
     imaging_path = data_dir_path / "raw-tiffs" / session_id
-    tif_files = sorted(glob.glob(f"{imaging_path}/*.tif"))
-    available_channels = ScanImageTiffSinglePlaneImagingExtractor.get_available_channels(file_path=tif_files[0])
-    available_planes = ScanImageTiffSinglePlaneImagingExtractor.get_available_planes(file_path=tif_files[0])
+    available_channels = Abdeladim2023SinglePlaneImagingInterface.get_available_channels(folder_path=imaging_path)
+    available_planes = Abdeladim2023SinglePlaneImagingInterface.get_available_planes(folder_path=imaging_path)
     photon_series_index = 0
     for channel in available_channels:
         for plane in available_planes:

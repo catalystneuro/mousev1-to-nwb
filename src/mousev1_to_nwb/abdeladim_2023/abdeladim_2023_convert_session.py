@@ -68,7 +68,7 @@ if __name__ == "__main__":
     # Parameters for conversion
     root_path = Path(f"/media/amtra/Samsung_T5/CN_data")
     data_dir_path = root_path / "MouseV1-to-nwb"
-    output_dir_path = root_path / "MouseV1-to-nwb-conversion_nwb/"
+    output_dir_path = root_path / "MouseV1-conversion_nwb/"
     stub_test = True
     session_id = "7expt"  # "2ret","3ori","4ori","5stim","6stim","7expt"
 

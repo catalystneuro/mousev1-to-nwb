@@ -12,14 +12,13 @@ from abdeladim_2023nwbconverter import Abdeladim2023NWBConverter
 from abdeladim_2023nwbconverter import get_default_segmentation_to_imaging_name_mapping
 
 def session_to_nwb(
-    data_dir_path: Union[str, Path], output_dir_path: Union[str, Path], session_id: str, stub_test: bool = False
+    data_dir_path: Union[str, Path], output_dir_path: Union[str, Path], session_id: str, subject_id:str, stub_test: bool = False
 ):
     data_dir_path = Path(data_dir_path)
     output_dir_path = Path(output_dir_path)
     if stub_test:
         output_dir_path = output_dir_path / "nwb_stub"
     output_dir_path.mkdir(parents=True, exist_ok=True)
-    subject_id = "unknown"  # TODO ask for subject_id
     nwbfile_path = output_dir_path / f"{session_id}.nwb"
 
     # Add Imaging
@@ -53,6 +52,7 @@ def session_to_nwb(
     editable_metadata = load_dict_from_file(editable_metadata_path)
     metadata = dict_deep_update(metadata, editable_metadata)
     metadata["Subject"].update(subject_id=subject_id)
+    metadata["NWBFile"].update(session_id=session_id)
     # Run conversion
     converter.run_conversion(
         metadata=metadata, 
@@ -69,10 +69,12 @@ if __name__ == "__main__":
     output_dir_path = root_path / "MouseV1-conversion_nwb/"
     stub_test = True
     session_id = "7expt"  # "2ret","3ori","4ori","5stim","6stim","7expt"
+    subject_id = "unknown"  # TODO ask for subject_id
 
     session_to_nwb(
         data_dir_path=data_dir_path,
         output_dir_path=output_dir_path,
         session_id=session_id,
+        subject_id=subject_id,
         stub_test=stub_test,
     )

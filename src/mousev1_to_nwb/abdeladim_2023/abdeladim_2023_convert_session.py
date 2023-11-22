@@ -9,7 +9,7 @@ from neuroconv.utils import load_dict_from_file, dict_deep_update
 
 from abdeladim_2023imaginginterface import Abdeladim2023SinglePlaneImagingInterface
 from abdeladim_2023nwbconverter import Abdeladim2023NWBConverter
-
+from abdeladim_2023nwbconverter import get_default_segmentation_to_imaging_name_mapping
 
 def session_to_nwb(
     data_dir_path: Union[str, Path], output_dir_path: Union[str, Path], session_id: str, stub_test: bool = False
@@ -22,27 +22,28 @@ def session_to_nwb(
     subject_id = "unknown"  # TODO ask for subject_id
     nwbfile_path = output_dir_path / f"{session_id}.nwb"
 
-    source_data = dict()
-    conversion_options = dict()
-
     # Add Imaging
-    imaging_path = data_dir_path / "raw-tiffs" / session_id
-    available_channels = Abdeladim2023SinglePlaneImagingInterface.get_available_channels(folder_path=imaging_path)
-    available_planes = Abdeladim2023SinglePlaneImagingInterface.get_available_planes(folder_path=imaging_path)
-    photon_series_index = 0
-    for channel in available_channels:
-        for plane in available_planes:
-            channel_name_without_space = channel.replace(" ", "")
-            interface_name = f"Imaging{channel_name_without_space}Plane{plane}"
-            source_data[interface_name] = {
-                "folder_path": str(imaging_path),
-                "channel_name": channel,
-                "plane_name": plane,
-            }
-            conversion_options[interface_name] = {"stub_test": stub_test, "photon_series_index": photon_series_index}
-            photon_series_index += 1
+    imaging_folder_path = data_dir_path / "raw-tiffs" / session_id
+    # Add Segmentation
+    segmentation_folder_path = data_dir_path / "processed-suite2p-data/suite2p"
 
-    converter = Abdeladim2023NWBConverter(source_data=source_data)
+    segmentation_to_imaging_plane_map = get_default_segmentation_to_imaging_name_mapping(imaging_folder_path, segmentation_folder_path)
+
+    converter = Abdeladim2023NWBConverter(
+        imaging_folder_path=imaging_folder_path,
+        segmentation_folder_path=segmentation_folder_path,
+        segmentation_to_imaging_map=segmentation_to_imaging_plane_map,
+        verbose=False,
+    )
+
+    conversion_options = {
+        interface_name: dict(stub_test=stub_test) for interface_name in converter.data_interface_objects.keys()
+    }
+    photon_series_index = 0
+    for interface_name in converter.data_interface_objects.keys():
+        if "Imaging" in interface_name:
+            conversion_options[interface_name]={"photon_series_index":photon_series_index}     
+            photon_series_index += 1
 
     # Add datetime to conversion
     metadata = converter.get_metadata()

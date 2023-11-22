@@ -2,7 +2,7 @@ from dateutil.parser import parse as dateparse
 import datetime
 import json
 import glob
-
+from natsort import natsorted
 from .abdeladim_2023imagingextractor import (
     Abdeladim2023MultiPlaneImagingExtractor,
     Abdeladim2023SinglePlaneImagingExtractor,
@@ -30,8 +30,8 @@ class Abdeladim2023SinglePlaneImagingInterface(BaseImagingExtractorInterface):
         self.channel_name = channel_name
         self.plane_name = plane_name
 
-        file_path = sorted(glob.glob(f"{folder_path}/*.tif"))
-        self.image_metadata = extract_extra_metadata(file_path=file_path[0])
+        file_paths = natsorted(glob.glob(f"{folder_path}/*.tif"))
+        self.image_metadata = extract_extra_metadata(file_path=file_paths[0])
         super().__init__(folder_path=folder_path, channel_name=channel_name, plane_name=plane_name, verbose=verbose)
 
     def get_metadata(self) -> DeepDict:
@@ -99,7 +99,7 @@ class Abdeladim2023SinglePlaneImagingInterface(BaseImagingExtractorInterface):
             scan_line_rate=1 / float(self.image_metadata["SI.hRoiManager.linePeriod"]),
             rate=self.imaging_extractor.get_sampling_frequency(),
             description=f"Two photon series acquired with {self.channel_name} at plane {self.plane_name}",
-            unit="px",
+            unit="n.a.",
             dimension=self.imaging_extractor.get_image_size(),
         )
 

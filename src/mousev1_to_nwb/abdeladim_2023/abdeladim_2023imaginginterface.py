@@ -1,7 +1,7 @@
 from dateutil.parser import parse as dateparse
 import datetime
 import json
-import glob
+from pathlib import Path
 from natsort import natsorted
 from .abdeladim_2023imagingextractor import (
     Abdeladim2023MultiPlaneImagingExtractor,
@@ -30,8 +30,10 @@ class Abdeladim2023SinglePlaneImagingInterface(BaseImagingExtractorInterface):
         self.channel_name = channel_name
         self.plane_name = plane_name
 
-        file_paths = natsorted(glob.glob(f"{folder_path}/*.tif"))
-        self.image_metadata = extract_extra_metadata(file_path=file_paths[0])
+        self.folder_path = Path(folder_path)
+        tif_file_paths = natsorted(self.folder_path.glob("*.tif"))
+        assert tif_file_paths, f"The TIF image files are missing from '{self.folder_path}'."
+        self.image_metadata = extract_extra_metadata(file_path=tif_file_paths[0])
         super().__init__(folder_path=folder_path, channel_name=channel_name, plane_name=plane_name, verbose=verbose)
 
     def get_metadata(self) -> DeepDict:

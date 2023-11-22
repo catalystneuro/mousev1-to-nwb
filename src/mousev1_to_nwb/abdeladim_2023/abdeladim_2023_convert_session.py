@@ -52,7 +52,7 @@ def session_to_nwb(
     editable_metadata_path = Path(__file__).parent / "abdeladim_2023_metadata.yaml"
     editable_metadata = load_dict_from_file(editable_metadata_path)
     metadata = dict_deep_update(metadata, editable_metadata)
-    metadata = dict_deep_update(metadata, {"Subject": {"subject_id": subject_id}})
+    metadata["Subject"].update(subject_id=subject_id)
     # Run conversion
     converter.run_conversion(
         metadata=metadata, 

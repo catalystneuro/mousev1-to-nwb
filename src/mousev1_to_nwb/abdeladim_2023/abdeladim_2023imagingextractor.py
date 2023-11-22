@@ -13,7 +13,7 @@ from roiextractors.extraction_tools import PathType, FloatType, ArrayType, Dtype
 import numpy as np
 
 
-class Abdeladim2023MultiPlaneImagingExtractor(ImagingExtractor):
+class Abdeladim2023MultiPlaneImagingExtractor(MultiImagingExtractor):
     """Specialized extractor for Abdeladim2023 conversion project: reading ScanImage .tif files chunked over time"""
 
     extractor_name = "Abdeladim2023MultiPlaneImagingExtractor"
@@ -34,56 +34,7 @@ class Abdeladim2023MultiPlaneImagingExtractor(ImagingExtractor):
             for file_path in tif_file_paths
         ]
 
-        self.imaging_extractor = MultiImagingExtractor(imaging_extractors)
-        times = self.imaging_extractor._get_times()
-        self.set_times(times=times)
-
-    def get_frames(self, frame_idxs: ArrayType) -> np.ndarray:
-        """Get specific video frames from indices (not necessarily continuous).
-
-        Parameters
-        ----------
-        frame_idxs: array-like
-            Indices of frames to return.
-
-        Returns
-        -------
-        frames: numpy.ndarray
-            The video frames.
-        """
-        return self.imaging_extractor.get_frames(frame_idxs=frame_idxs)
-
-    def get_num_frames(self) -> int:
-        return self.imaging_extractor.get_num_frames()
-
-    def get_video(self, start_frame: Optional[int] = None, end_frame: Optional[int] = None) -> np.ndarray:
-        """Get the video frames.
-
-        Parameters
-        ----------
-        start_frame: int, optional
-            Start frame index (inclusive).
-        end_frame: int, optional
-            End frame index (exclusive).
-
-        Returns
-        -------
-        video: numpy.ndarray
-            The video frames.
-        """
-        return self.imaging_extractor.get_video(start_frame=start_frame, end_frame=end_frame)
-
-    def get_channel_names(self):
-        return self.imaging_extractor.get_channel_names()
-
-    def get_image_size(self):
-        return self.imaging_extractor.get_image_size()
-
-    def get_num_channels(self):
-        return self.imaging_extractor.get_num_channels()
-
-    def get_sampling_frequency(self):
-        return self.imaging_extractor.get_sampling_frequency()
+        super().__init__(imaging_extractors=imaging_extractors)
 
 
 class Abdeladim2023SinglePlaneImagingExtractor(ImagingExtractor):

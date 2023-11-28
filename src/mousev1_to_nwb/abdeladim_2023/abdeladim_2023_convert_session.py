@@ -7,45 +7,42 @@ from zoneinfo import ZoneInfo
 
 from neuroconv.utils import load_dict_from_file, dict_deep_update
 
-from roiextractors.extractors.tiffimagingextractors.scanimagetiffimagingextractor import (
-    ScanImageTiffSinglePlaneImagingExtractor,
-)
+from abdeladim_2023imaginginterface import Abdeladim2023SinglePlaneImagingInterface
 from abdeladim_2023nwbconverter import Abdeladim2023NWBConverter
-
+from abdeladim_2023nwbconverter import get_default_segmentation_to_imaging_name_mapping
 
 def session_to_nwb(
-    data_dir_path: Union[str, Path], output_dir_path: Union[str, Path], session_id: str, stub_test: bool = False
+    data_dir_path: Union[str, Path], output_dir_path: Union[str, Path], session_id: str, subject_id:str, stub_test: bool = False
 ):
     data_dir_path = Path(data_dir_path)
     output_dir_path = Path(output_dir_path)
     if stub_test:
         output_dir_path = output_dir_path / "nwb_stub"
     output_dir_path.mkdir(parents=True, exist_ok=True)
-    subject_id = "unknown"  # TODO ask for subject_id
     nwbfile_path = output_dir_path / f"{session_id}.nwb"
 
-    source_data = dict()
-    conversion_options = dict()
-
     # Add Imaging
-    imaging_path = data_dir_path / "raw-tiffs" / session_id
-    tif_files = sorted(glob.glob(f"{imaging_path}/*.tif"))
-    available_channels = ScanImageTiffSinglePlaneImagingExtractor.get_available_channels(file_path=tif_files[0])
-    available_planes = ScanImageTiffSinglePlaneImagingExtractor.get_available_planes(file_path=tif_files[0])
-    photon_series_index = 0
-    for channel in available_channels:
-        for plane in available_planes:
-            channel_name_without_space = channel.replace(" ", "")
-            interface_name = f"Imaging{channel_name_without_space}Plane{plane}"
-            source_data[interface_name] = {
-                "folder_path": str(imaging_path),
-                "channel_name": channel,
-                "plane_name": plane,
-            }
-            conversion_options[interface_name] = {"stub_test": stub_test, "photon_series_index": photon_series_index}
-            photon_series_index += 1
+    imaging_folder_path = data_dir_path / "raw-tiffs" / session_id
+    # Add Segmentation
+    segmentation_folder_path = data_dir_path / "processed-suite2p-data/suite2p"
 
-    converter = Abdeladim2023NWBConverter(source_data=source_data)
+    segmentation_to_imaging_plane_map = get_default_segmentation_to_imaging_name_mapping(imaging_folder_path, segmentation_folder_path)
+
+    converter = Abdeladim2023NWBConverter(
+        imaging_folder_path=imaging_folder_path,
+        segmentation_folder_path=segmentation_folder_path,
+        segmentation_to_imaging_map=segmentation_to_imaging_plane_map,
+        verbose=False,
+    )
+
+    conversion_options = {
+        interface_name: dict(stub_test=stub_test) for interface_name in converter.data_interface_objects.keys()
+    }
+    photon_series_index = 0
+    for interface_name in converter.data_interface_objects.keys():
+        if "Imaging" in interface_name:
+            conversion_options[interface_name]={"photon_series_index":photon_series_index}     
+            photon_series_index += 1
 
     # Add datetime to conversion
     metadata = converter.get_metadata()
@@ -54,7 +51,8 @@ def session_to_nwb(
     editable_metadata_path = Path(__file__).parent / "abdeladim_2023_metadata.yaml"
     editable_metadata = load_dict_from_file(editable_metadata_path)
     metadata = dict_deep_update(metadata, editable_metadata)
-    metadata = dict_deep_update(metadata, {"Subject": {"subject_id": subject_id}})
+    metadata["Subject"].update(subject_id=subject_id)
+    metadata["NWBFile"].update(session_id=session_id)
     # Run conversion
     converter.run_conversion(
         metadata=metadata, 
@@ -71,10 +69,12 @@ if __name__ == "__main__":
     output_dir_path = root_path / "MouseV1-conversion_nwb/"
     stub_test = True
     session_id = "7expt"  # "2ret","3ori","4ori","5stim","6stim","7expt"
+    subject_id = "unknown"  # TODO ask for subject_id
 
     session_to_nwb(
         data_dir_path=data_dir_path,
         output_dir_path=output_dir_path,
         session_id=session_id,
+        subject_id=subject_id,
         stub_test=stub_test,
     )

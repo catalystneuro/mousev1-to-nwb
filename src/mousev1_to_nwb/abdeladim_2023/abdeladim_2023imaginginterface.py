@@ -11,6 +11,7 @@ from neuroconv.datainterfaces.ophys.baseimagingextractorinterface import BaseIma
 from neuroconv.utils import FolderPathType
 from neuroconv.utils.dict import DeepDict
 from roiextractors.extractors.tiffimagingextractors.scanimagetiff_utils import extract_extra_metadata
+from roiextractors.extractors.tiffimagingextractors.scanimagetiffimagingextractor import ScanImageTiffSinglePlaneImagingExtractor
 
 
 class Abdeladim2023SinglePlaneImagingInterface(BaseImagingExtractorInterface):
@@ -19,6 +20,16 @@ class Abdeladim2023SinglePlaneImagingInterface(BaseImagingExtractorInterface):
     """
 
     Extractor = Abdeladim2023SinglePlaneImagingExtractor
+
+    @classmethod
+    def get_available_channels(cls, folder_path):
+        file_path = sorted(glob.glob(f"{folder_path}/*.tif"))
+        return ScanImageTiffSinglePlaneImagingExtractor.get_available_channels(file_path=file_path[0])
+
+    @classmethod
+    def get_available_planes(cls, folder_path):
+        file_path = sorted(glob.glob(f"{folder_path}/*.tif"))
+        return ScanImageTiffSinglePlaneImagingExtractor.get_available_planes(file_path=file_path[0]) 
 
     def __init__(
         self,

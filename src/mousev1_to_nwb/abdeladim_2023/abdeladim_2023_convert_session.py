@@ -69,7 +69,7 @@ if __name__ == "__main__":
     output_dir_path = root_path / "MouseV1-conversion_nwb/"
     stub_test = True
     session_id = "7expt"  # "2ret","3ori","4ori","5stim","6stim","7expt"
-    subject_id = "unknown"  # TODO ask for subject_id
+    subject_id = "unknown"  # "w51_1", "w57_1"
 
     session_to_nwb(
         data_dir_path=data_dir_path,

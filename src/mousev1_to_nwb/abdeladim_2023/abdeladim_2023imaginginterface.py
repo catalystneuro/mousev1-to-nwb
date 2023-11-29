@@ -23,13 +23,13 @@ class Abdeladim2023SinglePlaneImagingInterface(BaseImagingExtractorInterface):
 
     @classmethod
     def get_available_channels(cls, folder_path):
-        file_path = sorted(glob.glob(f"{folder_path}/*.tif"))
-        return ScanImageTiffSinglePlaneImagingExtractor.get_available_channels(file_path=file_path[0])
+        tif_file_paths  = natsorted(folder_path.glob("*.tif"))
+        return ScanImageTiffSinglePlaneImagingExtractor.get_available_channels(file_path=tif_file_paths[0])
 
     @classmethod
     def get_available_planes(cls, folder_path):
-        file_path = sorted(glob.glob(f"{folder_path}/*.tif"))
-        return ScanImageTiffSinglePlaneImagingExtractor.get_available_planes(file_path=file_path[0]) 
+        tif_file_paths  = natsorted(folder_path.glob("*.tif"))
+        return ScanImageTiffSinglePlaneImagingExtractor.get_available_planes(file_path=tif_file_paths[0]) 
 
     def __init__(
         self,
@@ -112,8 +112,8 @@ class Abdeladim2023SinglePlaneImagingInterface(BaseImagingExtractorInterface):
             scan_line_rate=1 / float(self.image_metadata["SI.hRoiManager.linePeriod"]),
             rate=self.imaging_extractor.get_sampling_frequency(),
             description=f"Two photon series acquired with {self.channel_name} at plane {self.plane_name}",
-            unit="n.a.",
-            dimension=self.imaging_extractor.get_image_size(),
+            # unit="n.a.",
+            # dimension=self.imaging_extractor.get_image_size(),
         )
 
         return metadata

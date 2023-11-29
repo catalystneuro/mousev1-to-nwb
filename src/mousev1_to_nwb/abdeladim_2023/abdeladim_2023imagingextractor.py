@@ -1,6 +1,6 @@
 from typing import Optional, Tuple, List, Iterable
 from pathlib import Path
-import glob
+from natsort import natsorted
 from roiextractors.extractors.tiffimagingextractors.scanimagetiffimagingextractor import (
     ScanImageTiffMultiPlaneImagingExtractor,
     ScanImageTiffSinglePlaneImagingExtractor,
@@ -26,7 +26,7 @@ class Abdeladim2023MultiPlaneImagingExtractor(ImagingExtractor):
         channel_name: Optional[str] = None,
     ) -> None:
         self.folder_path = Path(folder_path)
-        tif_file_paths = sorted(glob.glob(f"{self.folder_path}/*.tif"))
+        tif_file_paths = natsorted(self.folder_path.glob("*.tif"))
         assert tif_file_paths, f"The TIF image files are missing from '{folder_path}'."
 
         imaging_extractors = [
@@ -100,7 +100,7 @@ class Abdeladim2023SinglePlaneImagingExtractor(ImagingExtractor):
         plane_name: str,
     ) -> None:
         self.folder_path = Path(folder_path)
-        tif_file_paths = sorted(glob.glob(f"{self.folder_path}/*.tif"))
+        tif_file_paths = natsorted(self.folder_path.glob("*.tif"))
         assert tif_file_paths, f"The TIF image files are missing from '{folder_path}'."
 
         imaging_extractors = [

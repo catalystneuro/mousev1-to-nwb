@@ -1,5 +1,6 @@
 from typing import Optional, Tuple, List, Iterable
 from pathlib import Path
+from natsort import natsorted
 from roiextractors.extractors.tiffimagingextractors.scanimagetiffimagingextractor import (
     ScanImageTiffMultiPlaneImagingExtractor,
     ScanImageTiffSinglePlaneImagingExtractor,
@@ -7,7 +8,7 @@ from roiextractors.extractors.tiffimagingextractors.scanimagetiffimagingextracto
 
 from roiextractors.imagingextractor import ImagingExtractor
 from roiextractors.multiimagingextractor import MultiImagingExtractor
-
+from neuroconv.utils import FolderPathType
 from roiextractors.extraction_tools import PathType, FloatType, ArrayType, DtypeType, get_package
 import numpy as np
 from natsort import natsorted
@@ -22,7 +23,7 @@ class Abdeladim2023MultiPlaneImagingExtractor(MultiImagingExtractor):
 
     def __init__(
         self,
-        folder_path: PathType,
+        folder_path: FolderPathType,
         channel_name: Optional[str] = None,
     ) -> None:
         self.folder_path = Path(folder_path)
@@ -46,7 +47,7 @@ class Abdeladim2023SinglePlaneImagingExtractor(MultiImagingExtractor):
 
     def __init__(
         self,
-        folder_path: PathType,
+        folder_path: FolderPathType,
         channel_name: str,
         plane_name: str,
     ) -> None:

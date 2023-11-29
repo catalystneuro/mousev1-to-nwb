@@ -3,7 +3,7 @@ import datetime
 import json
 from pathlib import Path
 from natsort import natsorted
-from .abdeladim_2023imagingextractor import (
+from abdeladim_2023imagingextractor import (
     Abdeladim2023MultiPlaneImagingExtractor,
     Abdeladim2023SinglePlaneImagingExtractor,
 )
@@ -74,12 +74,12 @@ class Abdeladim2023SinglePlaneImagingInterface(BaseImagingExtractorInterface):
         channel_metadata = {
             "Channel1": {
                 "name": "Green",
-                #"emission_lambda": 513.0, # Not specified
+                "emission_lambda": 513.0, # Not specified
                 "description": "Green channel of the microscope",
             },
             "Channel2": {
                 "name": "Red",
-                #"emission_lambda": 581.0,# Not specified
+                "emission_lambda": 581.0,# Not specified
                 "description": "Red channel of the microscope",
             },
         }[channel_name_without_space]
@@ -112,17 +112,7 @@ class Abdeladim2023SinglePlaneImagingInterface(BaseImagingExtractorInterface):
             scan_line_rate=1 / float(self.image_metadata["SI.hRoiManager.linePeriod"]),
             rate=self.imaging_extractor.get_sampling_frequency(),
             description=f"Two photon series acquired with {self.channel_name} at plane {self.plane_name}",
-            # unit="n.a.",
-            # dimension=self.imaging_extractor.get_image_size(),
         )
 
         return metadata
 
-    two_photon_series_index = {
-        "TwoPhotonSeriesChannel1Plane0": 0,
-        "TwoPhotonSeriesChannel1Plane1": 1,
-        "TwoPhotonSeriesChannel1Plane2": 2,
-        "TwoPhotonSeriesChannel2Plane0": 3,
-        "TwoPhotonSeriesChannel2Plane1": 4,
-        "TwoPhotonSeriesChannel2Plane2": 5,
-    }

@@ -3,15 +3,14 @@ import datetime
 import json
 from pathlib import Path
 from natsort import natsorted
-from abdeladim_2023imagingextractor import (
-    Abdeladim2023MultiPlaneImagingExtractor,
-    Abdeladim2023SinglePlaneImagingExtractor,
-)
+from abdeladim_2023imagingextractor import Abdeladim2023SinglePlaneImagingExtractor
 from neuroconv.datainterfaces.ophys.baseimagingextractorinterface import BaseImagingExtractorInterface
 from neuroconv.utils import FolderPathType
 from neuroconv.utils.dict import DeepDict
 from roiextractors.extractors.tiffimagingextractors.scanimagetiff_utils import extract_extra_metadata
-from roiextractors.extractors.tiffimagingextractors.scanimagetiffimagingextractor import ScanImageTiffSinglePlaneImagingExtractor
+from roiextractors.extractors.tiffimagingextractors.scanimagetiffimagingextractor import (
+    ScanImageTiffSinglePlaneImagingExtractor,
+)
 
 
 class Abdeladim2023SinglePlaneImagingInterface(BaseImagingExtractorInterface):
@@ -23,13 +22,13 @@ class Abdeladim2023SinglePlaneImagingInterface(BaseImagingExtractorInterface):
 
     @classmethod
     def get_available_channels(cls, folder_path):
-        tif_file_paths  = natsorted(folder_path.glob("*.tif"))
+        tif_file_paths = natsorted(folder_path.glob("*.tif"))
         return ScanImageTiffSinglePlaneImagingExtractor.get_available_channels(file_path=tif_file_paths[0])
 
     @classmethod
     def get_available_planes(cls, folder_path):
-        tif_file_paths  = natsorted(folder_path.glob("*.tif"))
-        return ScanImageTiffSinglePlaneImagingExtractor.get_available_planes(file_path=tif_file_paths[0]) 
+        tif_file_paths = natsorted(folder_path.glob("*.tif"))
+        return ScanImageTiffSinglePlaneImagingExtractor.get_available_planes(file_path=tif_file_paths[0])
 
     def __init__(
         self,
@@ -48,7 +47,6 @@ class Abdeladim2023SinglePlaneImagingInterface(BaseImagingExtractorInterface):
         super().__init__(folder_path=folder_path, channel_name=channel_name, plane_name=plane_name, verbose=verbose)
 
     def get_metadata(self) -> DeepDict:
-        
         metadata = super().get_metadata()
 
         if "state.internal.triggerTimeString" in self.image_metadata:
@@ -63,25 +61,27 @@ class Abdeladim2023SinglePlaneImagingInterface(BaseImagingExtractorInterface):
             )
             metadata["NWBFile"].update(session_start_time=extracted_session_start_time)
 
-        # Extract many scan image properties and attach them as dic in the description
-        device_number = 0  # Imaging plane metadata is a list with metadata for each plane
         ophys_metadata = metadata["Ophys"]
-        two_photon_series_metadata = ophys_metadata["TwoPhotonSeries"][device_number]
+        two_photon_series_metadata = ophys_metadata["TwoPhotonSeries"][0]
+
+        # Extract many scan image properties and attach them as dict in the description
         if self.image_metadata is not None:
             extracted_description = json.dumps(self.image_metadata)
             two_photon_series_metadata.update(description=extracted_description)
+
         channel_name_without_space = self.channel_name.replace(" ", "")
-        # indicators = {"Channel1": "GCaMP6f", "Channel2": "tdTomato"} # Not specified
+
+        # TODO indicators = {"Channel1": "GCaMP6f", "Channel2": "tdTomato"} # Not specified
 
         channel_metadata = {
             "Channel1": {
                 "name": "Green",
-                #"emission_lambda": # Not specified
+                "emission_lambda": 500.0,# TODO Not specified
                 "description": "Green channel of the microscope",
             },
             "Channel2": {
                 "name": "Red",
-                #"emission_lambda": # Not specified
+                "emission_lambda": 500.0,# TODO Not specified
                 "description": "Red channel of the microscope",
             },
         }[channel_name_without_space]
@@ -92,19 +92,19 @@ class Abdeladim2023SinglePlaneImagingInterface(BaseImagingExtractorInterface):
         metadata["Ophys"]["Device"][0].update(
             name=device_name,
             description="The mesoscale read/write platform was custom-built around a 2P random-access fluorescence mesoscope previously described in detail (Sofroniew 2016)",
-            manufacturer="Thorlabs Inc.", 
+            manufacturer="Thorlabs Inc.",
         )
 
-        # indicator = indicators[channel_name_without_space]
+        # TODO indicator = indicators[channel_name_without_space]
         imaging_plane_name = f"ImagingPlane{channel_name_without_space}Plane{self.plane_name}"
         imaging_plane_metadata = metadata["Ophys"]["ImagingPlane"][0]
         imaging_plane_metadata.update(
             name=imaging_plane_name,
             optical_channel=[optical_channel_metadata],
             device=device_name,
-            #excitation_lambda=,
-            #indicator=indicator,
-            imaging_rate= float(self.image_metadata["SI.hRoiManager.scanVolumeRate"])
+            excitation_lambda=920.0, # TODO Not specified
+            # TODO indicator=indicator,
+            imaging_rate=float(self.image_metadata["SI.hRoiManager.scanVolumeRate"]),
         )
 
         two_photon_series_metadata = metadata["Ophys"]["TwoPhotonSeries"][0]

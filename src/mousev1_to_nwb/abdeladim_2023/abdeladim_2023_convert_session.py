@@ -4,15 +4,22 @@ from typing import Union
 import glob
 import datetime
 from zoneinfo import ZoneInfo
+import numpy as np
 
 from neuroconv.utils import load_dict_from_file, dict_deep_update
 
-from abdeladim_2023imaginginterface import Abdeladim2023SinglePlaneImagingInterface
 from abdeladim_2023nwbconverter import Abdeladim2023NWBConverter
 from abdeladim_2023nwbconverter import get_default_segmentation_to_imaging_name_mapping
 
+
 def session_to_nwb(
-    data_dir_path: Union[str, Path], output_dir_path: Union[str, Path], session_id: str, subject_id:str, stub_test: bool = False
+    data_dir_path: Union[str, Path],
+    output_dir_path: Union[str, Path],
+    session_id: str,
+    subject_id: str,
+    segmentation_start_frame: int,
+    segmentation_end_frame: int,
+    stub_test: bool = False,
 ):
     data_dir_path = Path(data_dir_path)
     output_dir_path = Path(output_dir_path)
@@ -26,12 +33,16 @@ def session_to_nwb(
     # Add Segmentation
     segmentation_folder_path = data_dir_path / "processed-suite2p-data/suite2p"
 
-    segmentation_to_imaging_plane_map = get_default_segmentation_to_imaging_name_mapping(imaging_folder_path, segmentation_folder_path)
+    segmentation_to_imaging_plane_map = get_default_segmentation_to_imaging_name_mapping(
+        imaging_folder_path, segmentation_folder_path
+    )
 
     converter = Abdeladim2023NWBConverter(
         imaging_folder_path=imaging_folder_path,
         segmentation_folder_path=segmentation_folder_path,
         segmentation_to_imaging_map=segmentation_to_imaging_plane_map,
+        segmentation_start_frame=segmentation_start_frame,
+        segmentation_end_frame=segmentation_end_frame,
         verbose=False,
     )
 
@@ -41,7 +52,7 @@ def session_to_nwb(
     photon_series_index = 0
     for interface_name in converter.data_interface_objects.keys():
         if "Imaging" in interface_name:
-            conversion_options[interface_name]={"photon_series_index":photon_series_index}     
+            conversion_options[interface_name] = {"photon_series_index": photon_series_index}
             photon_series_index += 1
 
     # Add datetime to conversion
@@ -55,10 +66,7 @@ def session_to_nwb(
     metadata["NWBFile"].update(session_id=session_id)
     # Run conversion
     converter.run_conversion(
-        metadata=metadata, 
-        nwbfile_path=nwbfile_path, 
-        conversion_options=conversion_options, 
-        overwrite=True
+        metadata=metadata, nwbfile_path=nwbfile_path, conversion_options=conversion_options, overwrite=True
     )
 
 
@@ -68,8 +76,19 @@ if __name__ == "__main__":
     data_dir_path = root_path / "MouseV1-to-nwb"
     output_dir_path = root_path / "MouseV1-conversion_nwb/"
     stub_test = True
-    session_id = "7expt"  # "2ret","3ori","4ori","5stim","6stim","7expt"
-    subject_id = "unknown"  # "w51_1", "w57_1"
+
+    epoch_index = 0
+    epochs_name = ["2ret", "3ori", "4ori", "5stim", "6stim", "7expt"]
+    session_id = epochs_name[epoch_index]
+
+    subject_id = "w57_1"  # "w51_1", "w57_1"
+
+    segmentation_folder_path = data_dir_path / "processed-suite2p-data/suite2p/plane0"
+    file_npy_path = segmentation_folder_path / "ops.npy"
+    ops = np.load(file_npy_path, allow_pickle=True).item()
+    frames_per_epoch = ops["frames_per_folder"]
+    segmentation_start_frame = np.sum(frames_per_epoch[:epoch_index])
+    segmentation_end_frame = segmentation_start_frame + frames_per_epoch[epoch_index]
 
     session_to_nwb(
         data_dir_path=data_dir_path,
@@ -77,4 +96,6 @@ if __name__ == "__main__":
         session_id=session_id,
         subject_id=subject_id,
         stub_test=stub_test,
+        segmentation_start_frame=segmentation_start_frame,
+        segmentation_end_frame=segmentation_end_frame,
     )

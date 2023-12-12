@@ -5,8 +5,6 @@ from roiextractors.extractors.tiffimagingextractors.scanimagetiffimagingextracto
     ScanImageTiffMultiPlaneImagingExtractor,
     ScanImageTiffSinglePlaneImagingExtractor,
 )
-
-from roiextractors.imagingextractor import ImagingExtractor
 from roiextractors.multiimagingextractor import MultiImagingExtractor
 from neuroconv.utils import FolderPathType
 from roiextractors.extraction_tools import PathType, FloatType, ArrayType, DtypeType, get_package

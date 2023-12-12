@@ -5,8 +5,8 @@ from neuroconv import NWBConverter
 """Primary NWBConverter class for this dataset."""
 from neuroconv.utils import FolderPathType
 from typing import Optional
-from neuroconv.datainterfaces.ophys.suite2p.suite2pdatainterface import Suite2pSegmentationInterface
 from abdeladim_2023imaginginterface import Abdeladim2023SinglePlaneImagingInterface
+from abdeladim_2023segmentationinterface import Abdeladim2023SegmentationInterface
 
 
 def get_default_segmentation_to_imaging_name_mapping(
@@ -28,8 +28,8 @@ def get_default_segmentation_to_imaging_name_mapping(
     si_available_channels = [channel_name.replace(" ", "") for channel_name in si_available_channels]
     si_available_planes = Abdeladim2023SinglePlaneImagingInterface.get_available_planes(folder_path=imaging_folder_path)
 
-    s2p_available_channels = Suite2pSegmentationInterface.get_available_channels(folder_path=segmentation_folder_path)
-    s2p_available_planes = Suite2pSegmentationInterface.get_available_planes(folder_path=segmentation_folder_path)
+    s2p_available_channels = Abdeladim2023SegmentationInterface.get_available_channels(folder_path=segmentation_folder_path)
+    s2p_available_planes = Abdeladim2023SegmentationInterface.get_available_planes(folder_path=segmentation_folder_path)
 
     if len(s2p_available_channels) == 1 and len(s2p_available_planes) == 1:
         return None
@@ -55,13 +55,15 @@ def get_default_segmentation_to_imaging_name_mapping(
 
 
 class Abdeladim2023NWBConverter(NWBConverter):
-    """Primary conversion class for my extracellular electrophysiology dataset."""
+    """Primary conversion class for Abdeladim2023 dataset."""
 
     def __init__(
         self,
         imaging_folder_path: FolderPathType,
         segmentation_folder_path: Optional[FolderPathType] = None,
         segmentation_to_imaging_map: dict = None,
+        segmentation_start_frame: int = 0,
+        segmentation_end_frame: int = 100,
         verbose: bool = True,
     ):
         self.verbose = verbose
@@ -90,8 +92,8 @@ class Abdeladim2023NWBConverter(NWBConverter):
                 )
 
         if segmentation_folder_path:
-            available_planes = Suite2pSegmentationInterface.get_available_planes(folder_path=segmentation_folder_path)
-            available_channels = Suite2pSegmentationInterface.get_available_channels(
+            available_planes = Abdeladim2023SegmentationInterface.get_available_planes(folder_path=segmentation_folder_path)
+            available_channels = Abdeladim2023SegmentationInterface.get_available_channels(
                 folder_path=segmentation_folder_path
             )
             for channel_name in available_channels:
@@ -102,6 +104,8 @@ class Abdeladim2023NWBConverter(NWBConverter):
                         folder_path=segmentation_folder_path,
                         channel_name=channel_name,
                         plane_name=plane_name,
+                        start_frame=segmentation_start_frame,
+                        end_frame=segmentation_end_frame,
                         verbose=verbose,
                     )
                     if self.plane_map:
@@ -111,8 +115,8 @@ class Abdeladim2023NWBConverter(NWBConverter):
                         segmentation_source_data.update(
                             plane_segmentation_name=plane_segmentation_name,
                         )
-                    Suite2pSegmentationInterface(**segmentation_source_data)
+                    Abdeladim2023SegmentationInterface(**segmentation_source_data)
                     self.data_interface_objects.update(
-                        {segmentation_interface_name: Suite2pSegmentationInterface(**segmentation_source_data)}
+                        {segmentation_interface_name: Abdeladim2023SegmentationInterface(**segmentation_source_data)}
                     )
 

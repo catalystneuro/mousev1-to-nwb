@@ -48,8 +48,9 @@ class Abdeladim2023SinglePlaneImagingInterface(BaseImagingExtractorInterface):
         super().__init__(folder_path=folder_path, channel_name=channel_name, plane_name=plane_name, verbose=verbose)
 
     def get_metadata(self) -> DeepDict:
-        device_number = 0  # Imaging plane metadata is a list with metadata for each plane
+        
         metadata = super().get_metadata()
+
         if "state.internal.triggerTimeString" in self.image_metadata:
             extracted_session_start_time = dateparse(self.image_metadata["state.internal.triggerTimeString"])
             metadata["NWBFile"].update(session_start_time=extracted_session_start_time)
@@ -63,6 +64,7 @@ class Abdeladim2023SinglePlaneImagingInterface(BaseImagingExtractorInterface):
             metadata["NWBFile"].update(session_start_time=extracted_session_start_time)
 
         # Extract many scan image properties and attach them as dic in the description
+        device_number = 0  # Imaging plane metadata is a list with metadata for each plane
         ophys_metadata = metadata["Ophys"]
         two_photon_series_metadata = ophys_metadata["TwoPhotonSeries"][device_number]
         if self.image_metadata is not None:
@@ -74,12 +76,12 @@ class Abdeladim2023SinglePlaneImagingInterface(BaseImagingExtractorInterface):
         channel_metadata = {
             "Channel1": {
                 "name": "Green",
-                "emission_lambda": 513.0, # Not specified
+                #"emission_lambda": # Not specified
                 "description": "Green channel of the microscope",
             },
             "Channel2": {
                 "name": "Red",
-                "emission_lambda": 581.0,# Not specified
+                #"emission_lambda": # Not specified
                 "description": "Red channel of the microscope",
             },
         }[channel_name_without_space]
@@ -100,9 +102,9 @@ class Abdeladim2023SinglePlaneImagingInterface(BaseImagingExtractorInterface):
             name=imaging_plane_name,
             optical_channel=[optical_channel_metadata],
             device=device_name,
-            excitation_lambda=920.0,
+            #excitation_lambda=,
             #indicator=indicator,
-            imaging_rate=self.imaging_extractor.get_sampling_frequency(),
+            imaging_rate= float(self.image_metadata["SI.hRoiManager.scanVolumeRate"])
         )
 
         two_photon_series_metadata = metadata["Ophys"]["TwoPhotonSeries"][0]
@@ -110,9 +112,10 @@ class Abdeladim2023SinglePlaneImagingInterface(BaseImagingExtractorInterface):
             name=f"TwoPhotonSeries{channel_name_without_space}Plane{self.plane_name}",
             imaging_plane=imaging_plane_name,
             scan_line_rate=1 / float(self.image_metadata["SI.hRoiManager.linePeriod"]),
-            rate=self.imaging_extractor.get_sampling_frequency(),
             description=f"Two photon series acquired with {self.channel_name} at plane {self.plane_name}",
         )
 
         return metadata
 
+    def set_aligned_timestamps(self):
+        self.imaging_extractor._times

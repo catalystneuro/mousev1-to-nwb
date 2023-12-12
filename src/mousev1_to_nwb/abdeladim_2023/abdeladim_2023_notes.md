@@ -53,7 +53,7 @@ From this I suppose that the grid_spacing in the z direction is 4um but I need t
 - plane acquisition rate at --> `SI.hRoiManager.scanVolumeRate : 6.35621`
 - line acquisition rate at -->  1/`SI.hRoiManager.linePeriod : 6.31833e-05`
 
-- ? is this the subject_id? `'SI.hUserFunctions.userFunctionsCfg__8.Arguments': "{'w51_1'}"`
+- ? is this the subject_id? `'SI.hUserFunctions.userFunctionsCfg__8.Arguments': "{'w51_1'}"` (the tif file report 'w57_1')
 
 **Other metadata needed for the imaging data stream:**
 - grid_spacing in um for x, y and z direction 
@@ -63,17 +63,17 @@ From this I suppose that the grid_spacing in the z direction is 4um but I need t
 ---------------------------
 #### Segmentation data (Suite2P),
 The output of suit2p are not divided into sessions and there is no reference about the session to which it refers to. Thus, I checked the nuber of frames for the s2p data to see if I found any corrispondence with the one of the session, but turns out that:
-- Suit2p data has 41305 frames for each Plane
+- Suit2p data has 41305 frames for each Plane ('frames_per_folder': [ 9604,  6203,  6394,  1708,  3527, 13869])
 - While raw imaing data has in total 31422 frames (for each channel and plane combo):
-    - 9604 in session 2ret
-    - 6203 in session 3ori
-    - 6394 in session 4ori
-    - 1708 in session 5stim
-    - 3527 in session 6stim
-    - 3986 in session 7expt
+    - 9604 in 2ret
+    - 6203 in 3ori
+    - 6394 in 4ori
+    - 1708 in 5stim
+    - 3527 in 6stim
+    - 3986 in 7expt
 
 Then I notice that the subject_id is different:
-    - 'w57_1' from paths saved in suite2p (and 'frames_per_folder': [ 9604,  6203,  6394,  1708,  3527, 13869]),
+    - 'w57_1' from paths saved in suite2p 
     - 'w51_1' from ScanImage userFunction
 
 Therefore, the Suit2p processing is done by concatenating the different sessions/epochs. 
@@ -85,16 +85,16 @@ Therefore, the Suit2p processing is done by concatenating the different sessions
 The holographic data are just for the the "5stim" and "7expt" sessions
 from the README provided in the data folder:
 **Variables and nomenclature**
-`roi` = suite2p cell or roi. integer index into suite2p rois. NaN is a placeholder for a location that was targeted but not detected by suite2p. <span style="color: red;">missing</span>
-`hologram` = array/list of targeted rois that comprise a single stimulation event. i.e. a hologram could be a single cell stimulated, or n cells stimulated simultaneously. <span style="color: red;">missing</span>
+`roi` = suite2p cell or roi. integer index into suite2p rois. NaN is a placeholder for a location that was targeted but not detected by suite2p. _<span style="color: red;">missing</span> -> from email: info to be ignored, only need to have `hologram_list`_
+`hologram` = array/list of targeted rois that comprise a single stimulation event. i.e. a hologram could be a single cell stimulated, or n cells stimulated simultaneously. _<span style="color: red;">missing</span> -> from email: info to be ignored, only need to have `hologram_list`_
 `hologram_list` = list of unique stimulations/holograms that is indexed by `stim_id`
 `targeted_cells` = overally list of all suite2p cells targeted and matched to holographic stimuli
 `stim_times` = stimulation time (in seconds) within a trial for each roi, NaN means the cell was not stimulated
 `stim_id` = trialwise index into `hologram_list`, note this is idx-1, as the first "stim" condition is a control trial
 `power_per_cell` = power per cell/stimulation site in mW
-`spikes_per_cell` = stim frequency per cell/stimulation site <span style="color: red;">what is the difference from hz_per_cell?</span>.
+`spikes_per_cell` = stim frequency per cell/stimulation site _<span style="color: red;">what is the difference from hz_per_cell?</span>.-> from email: it's a typo, it actually means the number of stimulation per cell/stimulation site_
 `hz_per_cell` = stimulationd frequency per cell/stimulation site
-`frame_rate` = aquisition frame rate in Hz <span style="color: red;">missing</span>.
+`frame_rate` = aquisition frame rate in Hz _<span style="color: red;">missing</span> -> from email: it's the same as in Suite2P_
 
 ##### Session "5stim"
 In "5stim" there are 24 trials (`len(stim_id): 24`) and 36 combinations of max 10 ROIs (over a total of 368-->`len(targeted_cells)`) stimulated at the same time (`hologram_list.shape: (36,10)`). Only the first 8 combinations are referred in `stim_id`, the actual values of `stim_id` range from 0 (that is a control trial where there is no actual stimulation: `power_per_cell` and `spikes_per_cell` are 0) to 8 (`hologram_list[7]`).
@@ -103,8 +103,13 @@ In "5stim" there are 24 trials (`len(stim_id): 24`) and 36 combinations of max 1
 In "7expt" there are 723 trials (`len(stim_id): 723`) and 10 ROIs stimulated in separate trials alone (`hologram_list.shape: (10,1)`). All ROIs in hologram list are stimulated at least once: `stim_id` range from 0 -control trial- to 10 (`hologram_list[9]`).
 NB: for `stim_id`=4 --> `hologram_list[3]` is nan <span style="color: red;">why?</span> 
 
-**<span style="color: red;">Problem:</span>** `stim_times` it's relative to each trial but we don't know when each trials starts with respect to the starting time of the session. We need to know the actual timestamps in order to align with the other data stream
+**<span style="color: red;">Problem:</span>** `stim_times` it's relative to each trial but we don't know when each trials starts with respect to the starting time of the session. We need to know the actual timestamps in order to align with the other data stream --> <span style="color: red;">from email: We have no time reference with respect to the beginning of the session. This is irrelevant for timing during holographic stimulation experiments (or any of our 2p-imaging experiments for that matter) as the timing of holographic stimulation (and visual stimuli) occurs based on trial time (ie. Everything is synchronized to the beginning of a trial using a NI DAQ and TTL pulses). But presumably that information is encoded in the tiifs by ScanImage? If not, we can set that up somehow.</span>
 
+#### ROIs indices
+In the example.hdf5 file the targeted cells are 368 (`len(targeted_cells)`) in total, both for 5stim and 7expt. `targeted_cells` value span from 0 to 700 (`np.nanmax(targeted_cells)`).
+If we sum the number of cells ideatified as true cells in Suite2p over the 3 plane we obtain 702 cells (`len(iscell_0[iscell_0[:,0]!=0.])+len(iscell_1[iscell_1[:,0]!=0.])+len(iscell_2[iscell_2[:,0]!=0.])`). 
+1. <span style="color: red;">Where the Suite2p ROIs indces are saved?</span> 
+2. <span style="color: red;">How are they combined? Simply concatenated over the planes?</span> 
 
 --------------------
 **Ignore these files**
@@ -143,6 +148,7 @@ From SetupDaqFile class in holofun, I see there is a lot of metadata that must g
 - indicators for the 2 optical channels
 - emission_lambda for the 2 optical channels
 - excitation_lambda taken from paper: 920 nm 
+
 **<span style="color: red;">2. Should we save the ImageSeries as a volumetric data or as a separate planes?</span>**
 **<span style="color: red;">3. Should we concatenate the 6 epochs in one ImageSeries, or should we keep them separate?</span>**
 **<span style="color: red;">4. We need info on the subject</span>**

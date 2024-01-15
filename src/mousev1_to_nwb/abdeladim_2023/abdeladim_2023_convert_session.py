@@ -62,6 +62,11 @@ def session_to_nwb(
     editable_metadata_path = Path(__file__).parent / "abdeladim_2023_metadata.yaml"
     editable_metadata = load_dict_from_file(editable_metadata_path)
     metadata = dict_deep_update(metadata, editable_metadata)
+
+    # Add the correct metadata for the session
+    timezone = ZoneInfo("America/Los_Angeles")  # Time zone for Berkeley, California
+    session_start_time = metadata["NWBFile"]["session_start_time"]
+    metadata["NWBFile"].update(session_start_time=session_start_time.replace(tzinfo=timezone))
     metadata["Subject"].update(subject_id=subject_id)
     metadata["NWBFile"].update(session_id=session_id)
     # Run conversion
@@ -75,9 +80,9 @@ if __name__ == "__main__":
     root_path = Path(f"/media/amtra/Samsung_T5/CN_data")
     data_dir_path = root_path / "MouseV1-to-nwb"
     output_dir_path = root_path / "MouseV1-conversion_nwb/"
-    stub_test = True
+    stub_test = False #for some reason does not work for iamging data
 
-    epoch_index = 0
+    epoch_index = 3
     epochs_name = ["2ret", "3ori", "4ori", "5stim", "6stim", "7expt"]
     session_id = epochs_name[epoch_index]
 

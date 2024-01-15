@@ -1,4 +1,5 @@
 from dateutil.parser import parse as dateparse
+from dateutil import tz
 import datetime
 import json
 from pathlib import Path
@@ -113,9 +114,7 @@ class Abdeladim2023SinglePlaneImagingInterface(BaseImagingExtractorInterface):
             imaging_plane=imaging_plane_name,
             scan_line_rate=1 / float(self.image_metadata["SI.hRoiManager.linePeriod"]),
             description=f"Two photon series acquired with {self.channel_name} at plane {self.plane_name}",
+            rate=float(self.image_metadata["SI.hRoiManager.scanVolumeRate"]),
         )
 
         return metadata
-
-    def set_aligned_timestamps(self):
-        self.imaging_extractor._times

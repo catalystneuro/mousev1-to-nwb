@@ -108,6 +108,71 @@ NB: for `stim_id`=4 --> `hologram_list[3]` is nan <span style="color: red;">why?
 #### ROIs indices
 In the example.hdf5 file the targeted cells are 368 (`len(targeted_cells)`) in total, both for 5stim and 7expt. `targeted_cells` value span from 0 to 700 (`np.nanmax(targeted_cells)`).
 If we sum the number of cells ideatified as true cells in Suite2p over the 3 plane we obtain 702 cells (`len(iscell_0[iscell_0[:,0]!=0.])+len(iscell_1[iscell_1[:,0]!=0.])+len(iscell_2[iscell_2[:,0]!=0.])`). 
+
+In the ScanImage .tif metadata there is a dictonary saved as text that the function `extract_extra_metadata` cannot parse, where information on the ROIs are stored. 
+```
+"RoiGroups":{
+    "imagingRoiGroup":{# general imaging space metadata (only 2D)
+        ...
+        "centerXY": [-1.776356839e-16,0.1],
+        "sizeXY": [13.5,13.5], # size of the FOV 
+        "rotationDegrees": 0,
+        "enable": 1,
+        "pixelResolutionXY": [512,512],
+        "pixelToRefTransform": [[0.0263671875,0,-6.763183594],
+                                [0,0.263671875,-6.663183594],
+                                [0,0,1]],
+        "affine":  [[13.5,0,-6.75],
+                    [0,13.5,-6.65],
+                    [0,0,1]]
+        ...
+    }, 
+    "photostimRoiGroups":null, # no spatial info on photostimRoiGroups
+    "integrationRoiGroup":{
+        ...
+        "rois": [
+        {
+          "ver": 1,
+          "classname": "scanimage.mroi.Roi",
+          "name": "ROI 1",
+            ...
+          "zs": 0,
+          "scanfields": {
+            ...
+            "centerXY": [2.518066406,1.062402344],
+            "sizeXY": [0.2373046875,0.2373046875],
+            "rotationDegrees": 0,
+            "enable": 1,
+            "threshold": 100,
+            "channel": 1,
+            "processor": "cpu",
+            "mask": [roi_pixel_mask 9x9 binary matrix],
+            "affine": [[0.2373046875,0,2.518066406],
+                       [0,0.2373046875,1.062402344],
+                       [0,0,1]]
+          },
+          "discretePlaneMode": 1,
+          "powers": null,
+          "pzAdjust": null,
+          "Lzs": null,
+          "interlaceDecimation": null,
+          "interlaceOffset": null,
+          "enable": 1
+        },
+        ... # all the 368 ROIs
+        ]
+    } # imaging space metadata for each ROI
+}
+```
+In `imagingRoiGroup` we can probably extract info on the dimension of the field of view (XY) from `"sizeXY"` and divide by the dimension to get the grid_spacing (z dimension missed)
+
+In `integrationRoiGroup` we can associate the 368 ROIs with the plane they belong to from `"zs": 0/30/55` 
+
+--> in `targeted_list` the ROI are ordered as the one reported in `integrationRoiGroup`?
+--> is Plane0 at zs = 0, Plane1 at zs = 30 and Plane2 at zs = 55 for Suite2p data?
+
+If so we can recover the extact roi_id pointing to the correct PlaneSegmentation where the roi are stored.
+
 1. <span style="color: red;">Where the Suite2p ROIs indces are saved?</span> 
 2. <span style="color: red;">How are they combined? Simply concatenated over the planes?</span> 
 

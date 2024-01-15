@@ -1,71 +1,106 @@
 """Primary script to run to convert an entire session for of data using the NWBConverter."""
 from pathlib import Path
 from typing import Union
+import glob
 import datetime
 from zoneinfo import ZoneInfo
+import numpy as np
 
 from neuroconv.utils import load_dict_from_file, dict_deep_update
 
-from mousev1_to_nwb.abdeladim_2023 import Abdeladim2023NWBConverter
+from abdeladim_2023nwbconverter import Abdeladim2023NWBConverter
+from abdeladim_2023nwbconverter import get_default_segmentation_to_imaging_name_mapping
 
 
-def session_to_nwb(data_dir_path: Union[str, Path], output_dir_path: Union[str, Path], stub_test: bool = False):
-
+def session_to_nwb(
+    data_dir_path: Union[str, Path],
+    output_dir_path: Union[str, Path],
+    session_id: str,
+    subject_id: str,
+    segmentation_start_frame: int,
+    segmentation_end_frame: int,
+    stub_test: bool = False,
+):
     data_dir_path = Path(data_dir_path)
     output_dir_path = Path(output_dir_path)
     if stub_test:
         output_dir_path = output_dir_path / "nwb_stub"
     output_dir_path.mkdir(parents=True, exist_ok=True)
-
-    session_id = "subject_identifier_usually"
     nwbfile_path = output_dir_path / f"{session_id}.nwb"
 
-    source_data = dict()
-    conversion_options = dict()
+    # Add Imaging
+    imaging_folder_path = data_dir_path / "raw-tiffs" / session_id
+    # Add Segmentation
+    segmentation_folder_path = data_dir_path / "processed-suite2p-data/suite2p"
 
-    # Add Recording
-    source_data.update(dict(Recording=dict()))
-    conversion_options.update(dict(Recording=dict()))
+    segmentation_to_imaging_plane_map = get_default_segmentation_to_imaging_name_mapping(
+        imaging_folder_path, segmentation_folder_path
+    )
 
-    # Add LFP
-    source_data.update(dict(LFP=dict()))
-    conversion_options.update(dict(LFP=dict()))
+    converter = Abdeladim2023NWBConverter(
+        imaging_folder_path=imaging_folder_path,
+        segmentation_folder_path=segmentation_folder_path,
+        segmentation_to_imaging_map=segmentation_to_imaging_plane_map,
+        segmentation_start_frame=segmentation_start_frame,
+        segmentation_end_frame=segmentation_end_frame,
+        verbose=False,
+    )
 
-    # Add Sorting
-    source_data.update(dict(Sorting=dict()))
-    conversion_options.update(dict(Sorting=dict()))
-
-    # Add Behavior
-    source_data.update(dict(Behavior=dict()))
-    conversion_options.update(dict(Behavior=dict()))
-
-    converter = Abdeladim2023NWBConverter(source_data=source_data)
+    conversion_options = {
+        interface_name: dict(stub_test=stub_test) for interface_name in converter.data_interface_objects.keys()
+    }
+    photon_series_index = 0
+    for interface_name in converter.data_interface_objects.keys():
+        if "Imaging" in interface_name:
+            conversion_options[interface_name] = {"photon_series_index": photon_series_index}
+            photon_series_index += 1
 
     # Add datetime to conversion
     metadata = converter.get_metadata()
-    datetime.datetime(
-        year=2020, month=1, day=1, tzinfo=ZoneInfo("US/Eastern")
-    )
-    date = datetime.datetime.today()  # TO-DO: Get this from author
-    metadata["NWBFile"]["session_start_time"] = date
 
     # Update default metadata with the editable in the corresponding yaml file
     editable_metadata_path = Path(__file__).parent / "abdeladim_2023_metadata.yaml"
     editable_metadata = load_dict_from_file(editable_metadata_path)
     metadata = dict_deep_update(metadata, editable_metadata)
 
+    # Add the correct metadata for the session
+    timezone = ZoneInfo("America/Los_Angeles")  # Time zone for Berkeley, California
+    session_start_time = metadata["NWBFile"]["session_start_time"]
+    metadata["NWBFile"].update(session_start_time=session_start_time.replace(tzinfo=timezone))
+    metadata["Subject"].update(subject_id=subject_id)
+    metadata["NWBFile"].update(session_id=session_id)
     # Run conversion
-    converter.run_conversion(metadata=metadata, nwbfile_path=nwbfile_path, conversion_options=conversion_options)
+    converter.run_conversion(
+        metadata=metadata, nwbfile_path=nwbfile_path, conversion_options=conversion_options, overwrite=True
+    )
 
 
 if __name__ == "__main__":
-
     # Parameters for conversion
-    data_dir_path = Path("/Directory/With/Raw/Formats/")
-    output_dir_path = Path("~/conversion_nwb/")
-    stub_test = False
+    root_path = Path(f"/media/amtra/Samsung_T5/CN_data")
+    data_dir_path = root_path / "MouseV1-to-nwb"
+    output_dir_path = root_path / "MouseV1-conversion_nwb/"
+    stub_test = False #for some reason does not work for iamging data
 
-    session_to_nwb(data_dir_path=data_dir_path,
-                    output_dir_path=output_dir_path,
-                    stub_test=stub_test,
-                    )
+    epoch_index = 3
+    epochs_name = ["2ret", "3ori", "4ori", "5stim", "6stim", "7expt"]
+    session_id = epochs_name[epoch_index]
+
+    subject_id = "w57_1"  # "w51_1", "w57_1"
+
+    segmentation_folder_path = data_dir_path / "processed-suite2p-data/suite2p/plane0"
+    file_npy_path = segmentation_folder_path / "ops.npy"
+    ops = np.load(file_npy_path, allow_pickle=True).item()
+    frames_per_epoch = ops["frames_per_folder"]
+    segmentation_start_frame = np.sum(frames_per_epoch[:epoch_index])
+    segmentation_end_frame = segmentation_start_frame + frames_per_epoch[epoch_index]
+
+    session_to_nwb(
+        data_dir_path=data_dir_path,
+        output_dir_path=output_dir_path,
+        session_id=session_id,
+        subject_id=subject_id,
+        stub_test=stub_test,
+        segmentation_start_frame=segmentation_start_frame,
+        segmentation_end_frame=segmentation_end_frame,
+    )

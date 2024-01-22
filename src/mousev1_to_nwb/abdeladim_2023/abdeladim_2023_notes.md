@@ -97,13 +97,11 @@ from the README provided in the data folder:
 `frame_rate` = aquisition frame rate in Hz _<span style="color: red;">missing</span> -> from email: it's the same as in Suite2P_
 
 ##### Session "5stim"
-In "5stim" there are 24 trials (`len(stim_id): 24`) and 36 combinations of max 10 ROIs (over a total of 368-->`len(targeted_cells)`) stimulated at the same time (`hologram_list.shape: (36,10)`). Only the first 8 combinations are referred in `stim_id`, the actual values of `stim_id` range from 0 (that is a control trial where there is no actual stimulation: `power_per_cell` and `spikes_per_cell` are 0) to 8 (`hologram_list[7]`).
+In "5stim" there are 24 trials (`len(stim_id): 24`). Each trial correspond to a multipage .tif file in the "5stim" imaging folder, indeed there are 24 .tif files in the folder. There are 36 combinations of max 10 ROIs (over a total of 368-->`len(targeted_cells)`) stimulated at the same time (`hologram_list.shape: (36,10)`). Only the first 8 combinations are referred in `stim_id`, the actual values of `stim_id` range from 0 (that is a control trial where there is no actual stimulation: `power_per_cell` and `spikes_per_cell` are 0) to 8 (`hologram_list[7]`).
 
 ##### Session "7expt"
-In "7expt" there are 723 trials (`len(stim_id): 723`) and 10 ROIs stimulated in separate trials alone (`hologram_list.shape: (10,1)`). All ROIs in hologram list are stimulated at least once: `stim_id` range from 0 -control trial- to 10 (`hologram_list[9]`).
+In "7expt" there are 723 trials (`len(stim_id): 723`). Each trial correspond to a multipage .tif file in the "7expt" imaging folder, only 209 .tif files in the folder--> <span style="color: red;">some files are missing</span>. 10 ROIs stimulated in separate trials alone (`hologram_list.shape: (10,1)`). All ROIs in hologram list are stimulated at least once: `stim_id` range from 0 -control trial- to 10 (`hologram_list[9]`).
 NB: for `stim_id`=4 --> `hologram_list[3]` is nan <span style="color: red;">why?</span> 
-
-**<span style="color: red;">Problem:</span>** `stim_times` it's relative to each trial but we don't know when each trials starts with respect to the starting time of the session. We need to know the actual timestamps in order to align with the other data stream --> <span style="color: red;">from email: We have no time reference with respect to the beginning of the session. This is irrelevant for timing during holographic stimulation experiments (or any of our 2p-imaging experiments for that matter) as the timing of holographic stimulation (and visual stimuli) occurs based on trial time (ie. Everything is synchronized to the beginning of a trial using a NI DAQ and TTL pulses). But presumably that information is encoded in the tiifs by ScanImage? If not, we can set that up somehow.</span>
 
 #### ROIs indices
 In the example.hdf5 file the targeted cells are 368 (`len(targeted_cells)`) in total, both for 5stim and 7expt. `targeted_cells` value span from 0 to 700 (`np.nanmax(targeted_cells)`).
@@ -173,9 +171,6 @@ In `integrationRoiGroup` we can associate the 368 ROIs with the plane they belon
 
 If so we can recover the extact roi_id pointing to the correct PlaneSegmentation where the roi are stored.
 
-1. <span style="color: red;">Where the Suite2p ROIs indces are saved?</span> 
-2. <span style="color: red;">How are they combined? Simply concatenated over the planes?</span> 
-
 --------------------
 **Ignore these files**
 - makeMasks3D_img.mat : image masks for identified ROIs (red and green channel superimpose - blue channel is 0) and target ROIs for photstim (3 distinct axial `slices` that are acquired round-robin at ~19Hz total (~6Hz / slice))
@@ -214,9 +209,12 @@ From SetupDaqFile class in holofun, I see there is a lot of metadata that must g
 - emission_lambda for the 2 optical channels
 - excitation_lambda taken from paper: 920 nm 
 
-**<span style="color: red;">2. Should we save the ImageSeries as a volumetric data or as a separate planes?</span>**
-**<span style="color: red;">3. Should we concatenate the 6 epochs in one ImageSeries, or should we keep them separate?</span>**
-**<span style="color: red;">4. We need info on the subject</span>**
-**<span style="color: red;">5. We need info on the session</span>**
+**<span style="color: red;">2. Other metadata needed for the imaging data stream:</span>**
+- excitation_lambda for photostimulation
+- opsin used
+- laser-related metadata
+- spatial light modulator metadata
+
+**<span style="color: red;">3. Other metadata needed for subject and session</span>**
 
 

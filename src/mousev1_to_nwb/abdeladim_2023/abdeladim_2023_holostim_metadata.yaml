@@ -1,0 +1,25 @@
+Ophys:
+  OptogeneticDevice:
+    SpatialLightModulator2D:
+      name: SpatialLightModulator2D
+      description: The spatial light modulator used in this experiment.
+      model: The spatial lightmodulator model.
+    LightSource:
+      name: LightSource
+      description: The laser used in this experiment.
+      model: The laser model.
+      stimulation_wavelength: 900.0 # nm
+      peak_power: 0.7 # the peak power of stimulation in Watts
+  OptogeneticStimulusSite:
+    - name: OptogeneticStimulusSite
+      description: The targeted location of the holographic stimulation.
+      excitation_lambda: 900.0 # nm
+      effector: unknow # the peak power of stimulation in Watts
+      location: unkwon
+
+LabMetaData:
+  TemporalFocusing:
+    name: TemporalFocusing
+    description: The temporal focusing pattern applied to the optogenetic stimulation.
+    lateral_point_spread_function: unknow
+    axial_point_spread_function: unknow

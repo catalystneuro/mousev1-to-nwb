@@ -14,3 +14,8 @@ Subject:
   species: Rattus norvegicus
   age: P1W2D  #TODO check
   sex: U  #TODO check
+Ophys:
+  Device:
+    - name: CustomMicroscope
+      description: "The mesoscale read/write platform was custom-built around a 2P random-access fluorescence mesoscope previously described in detail (Sofroniew 2016)"
+      manufacturer: "Thorlabs Inc."

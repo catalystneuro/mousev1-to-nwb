@@ -1,8 +1,7 @@
 """Primary script to run to convert an entire session for of data using the NWBConverter."""
 from pathlib import Path
 from typing import Union
-import glob
-import datetime
+import h5py
 from zoneinfo import ZoneInfo
 import numpy as np
 
@@ -15,7 +14,7 @@ from abdeladim_2023nwbconverter import get_default_segmentation_to_imaging_name_
 def session_to_nwb(
     data_dir_path: Union[str, Path],
     output_dir_path: Union[str, Path],
-    session_id: str,
+    epoch_name: str,
     subject_id: str,
     segmentation_start_frame: int,
     segmentation_end_frame: int,
@@ -26,16 +25,19 @@ def session_to_nwb(
     if stub_test:
         output_dir_path = output_dir_path / "nwb_stub"
     output_dir_path.mkdir(parents=True, exist_ok=True)
-    nwbfile_path = output_dir_path / f"{session_id}.nwb"
 
     # Add Imaging
-    imaging_folder_path = data_dir_path / "raw-tiffs" / session_id
+    imaging_folder_path = data_dir_path / "raw-tiffs" / epoch_name
     # Add Segmentation
     segmentation_folder_path = data_dir_path / "processed-suite2p-data/suite2p"
-
     segmentation_to_imaging_plane_map = get_default_segmentation_to_imaging_name_mapping(
         imaging_folder_path, segmentation_folder_path
     )
+    # Check if session has holographic photostimulation data
+    holographic_stimulation_file_path = data_dir_path / "example_data.hdf5"
+    holographic_stimulation_data = h5py.File(holographic_stimulation_file_path, "r")
+    if epoch_name not in holographic_stimulation_data.keys():
+        holographic_stimulation_file_path = None
 
     converter = Abdeladim2023NWBConverter(
         imaging_folder_path=imaging_folder_path,
@@ -43,6 +45,8 @@ def session_to_nwb(
         segmentation_to_imaging_map=segmentation_to_imaging_plane_map,
         segmentation_start_frame=segmentation_start_frame,
         segmentation_end_frame=segmentation_end_frame,
+        holographic_stimulation_file_path=holographic_stimulation_file_path,
+        epoch_name=epoch_name,
         verbose=False,
     )
 
@@ -63,12 +67,23 @@ def session_to_nwb(
     editable_metadata = load_dict_from_file(editable_metadata_path)
     metadata = dict_deep_update(metadata, editable_metadata)
 
+    # Update metadata with the holographic stimulation data
+    if "HolographicStimulation" in converter.data_interface_objects:
+        holographic_stimulation_metadata_path = Path(__file__).parent / "abdeladim_2023_holostim_metadata.yaml"
+        holographic_metadata = load_dict_from_file(holographic_stimulation_metadata_path)
+        metadata = dict_deep_update(metadata, holographic_metadata)
+
     # Add the correct metadata for the session
     timezone = ZoneInfo("America/Los_Angeles")  # Time zone for Berkeley, California
     session_start_time = metadata["NWBFile"]["session_start_time"]
     metadata["NWBFile"].update(session_start_time=session_start_time.replace(tzinfo=timezone))
     metadata["Subject"].update(subject_id=subject_id)
+
+    session_id = f"{session_start_time.year}{session_start_time.month}{session_start_time.day}_{epoch_name}_{subject_id}"
     metadata["NWBFile"].update(session_id=session_id)
+
+    nwbfile_path = output_dir_path / f"{session_id}.nwb"
+
     # Run conversion
     converter.run_conversion(
         metadata=metadata, nwbfile_path=nwbfile_path, conversion_options=conversion_options, overwrite=True
@@ -80,13 +95,13 @@ if __name__ == "__main__":
     root_path = Path(f"/media/amtra/Samsung_T5/CN_data")
     data_dir_path = root_path / "MouseV1-to-nwb"
     output_dir_path = root_path / "MouseV1-conversion_nwb/"
-    stub_test = False #for some reason does not work for iamging data
-
-    epoch_index = 3
-    epochs_name = ["2ret", "3ori", "4ori", "5stim", "6stim", "7expt"]
-    session_id = epochs_name[epoch_index]
+    stub_test = False  # for some reason does not work for iamging data
 
     subject_id = "w57_1"  # "w51_1", "w57_1"
+
+    epochs_names = ["2ret", "3ori", "4ori", "5stim", "6stim", "7expt"]
+    epoch_index = 3
+    epoch_name = epochs_names[epoch_index]
 
     segmentation_folder_path = data_dir_path / "processed-suite2p-data/suite2p/plane0"
     file_npy_path = segmentation_folder_path / "ops.npy"
@@ -98,7 +113,7 @@ if __name__ == "__main__":
     session_to_nwb(
         data_dir_path=data_dir_path,
         output_dir_path=output_dir_path,
-        session_id=session_id,
+        epoch_name=epoch_name,
         subject_id=subject_id,
         stub_test=stub_test,
         segmentation_start_frame=segmentation_start_frame,

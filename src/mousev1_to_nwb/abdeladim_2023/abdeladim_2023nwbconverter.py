@@ -3,10 +3,11 @@ from typing import Dict
 from neuroconv import NWBConverter
 
 """Primary NWBConverter class for this dataset."""
-from neuroconv.utils import FolderPathType
+from neuroconv.utils import FolderPathType, FilePathType, DeepDict, dict_deep_update
 from typing import Optional
 from abdeladim_2023imaginginterface import Abdeladim2023SinglePlaneImagingInterface
 from abdeladim_2023segmentationinterface import Abdeladim2023SegmentationInterface
+from abdeladim_2023holostiminterface import Abdeladim2023HolographicStimulationInterface
 
 
 def get_default_segmentation_to_imaging_name_mapping(
@@ -28,7 +29,9 @@ def get_default_segmentation_to_imaging_name_mapping(
     si_available_channels = [channel_name.replace(" ", "") for channel_name in si_available_channels]
     si_available_planes = Abdeladim2023SinglePlaneImagingInterface.get_available_planes(folder_path=imaging_folder_path)
 
-    s2p_available_channels = Abdeladim2023SegmentationInterface.get_available_channels(folder_path=segmentation_folder_path)
+    s2p_available_channels = Abdeladim2023SegmentationInterface.get_available_channels(
+        folder_path=segmentation_folder_path
+    )
     s2p_available_planes = Abdeladim2023SegmentationInterface.get_available_planes(folder_path=segmentation_folder_path)
 
     if len(s2p_available_channels) == 1 and len(s2p_available_planes) == 1:
@@ -64,6 +67,8 @@ class Abdeladim2023NWBConverter(NWBConverter):
         segmentation_to_imaging_map: dict = None,
         segmentation_start_frame: int = 0,
         segmentation_end_frame: int = 100,
+        holographic_stimulation_file_path: Optional[FilePathType] = None,
+        epoch_name: Optional[str] = None,
         verbose: bool = True,
     ):
         self.verbose = verbose
@@ -71,28 +76,30 @@ class Abdeladim2023NWBConverter(NWBConverter):
 
         self.plane_map = segmentation_to_imaging_map
 
-        available_channels = Abdeladim2023SinglePlaneImagingInterface.get_available_channels(
+        self.available_channels = Abdeladim2023SinglePlaneImagingInterface.get_available_channels(
             folder_path=imaging_folder_path
         )
-        available_planes = Abdeladim2023SinglePlaneImagingInterface.get_available_planes(
+        self.available_planes = Abdeladim2023SinglePlaneImagingInterface.get_available_planes(
             folder_path=imaging_folder_path
         )
-        for channel_name in available_channels:
-            for plane_name in available_planes:
+        for channel_name in self.available_channels:
+            for plane_name in self.available_planes:
                 channel_name_without_space = channel_name.replace(" ", "")
                 imaging_interface_name = f"Imaging{channel_name_without_space}Plane{plane_name}"
                 imaging_source_data = dict(
-                        folder_path=imaging_folder_path,
-                        channel_name=channel_name,
-                        plane_name=plane_name,
-                        verbose=verbose,
+                    folder_path=imaging_folder_path,
+                    channel_name=channel_name,
+                    plane_name=plane_name,
+                    verbose=verbose,
                 )
                 self.data_interface_objects.update(
                     {imaging_interface_name: Abdeladim2023SinglePlaneImagingInterface(**imaging_source_data)}
                 )
 
         if segmentation_folder_path:
-            available_planes = Abdeladim2023SegmentationInterface.get_available_planes(folder_path=segmentation_folder_path)
+            available_planes = Abdeladim2023SegmentationInterface.get_available_planes(
+                folder_path=segmentation_folder_path
+            )
             available_channels = Abdeladim2023SegmentationInterface.get_available_channels(
                 folder_path=segmentation_folder_path
             )
@@ -120,3 +127,19 @@ class Abdeladim2023NWBConverter(NWBConverter):
                         {segmentation_interface_name: Abdeladim2023SegmentationInterface(**segmentation_source_data)}
                     )
 
+        if holographic_stimulation_file_path:
+            holographic_stimulation_interface_name = "HolographicStimulation"
+            holographic_stimulation_source_data = dict(
+                folder_path=imaging_folder_path,
+                holographic_stimulation_file_path=holographic_stimulation_file_path,
+                epoch_name=epoch_name,
+                verbose=verbose,
+            )
+            Abdeladim2023HolographicStimulationInterface(**holographic_stimulation_source_data)
+            self.data_interface_objects.update(
+                {
+                    holographic_stimulation_interface_name: Abdeladim2023HolographicStimulationInterface(
+                        **holographic_stimulation_source_data
+                    )
+                }
+            )

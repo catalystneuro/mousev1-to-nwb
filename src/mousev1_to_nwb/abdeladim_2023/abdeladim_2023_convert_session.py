@@ -79,10 +79,11 @@ def session_to_nwb(
     metadata["NWBFile"].update(session_start_time=session_start_time.replace(tzinfo=timezone))
     metadata["Subject"].update(subject_id=subject_id)
 
-    session_id = f"{session_start_time.year}{session_start_time.month}{session_start_time.day}_{epoch_name}_{subject_id}"
+    # Each epoch will be saved in a different nwb file but they will have the same session_id.
+    session_id = f"{session_start_time.year}{session_start_time.month}{session_start_time.day}_{subject_id}"
     metadata["NWBFile"].update(session_id=session_id)
 
-    nwbfile_path = output_dir_path / f"{session_id}.nwb"
+    nwbfile_path = output_dir_path / f"{session_id}_{epoch_name}.nwb"
 
     # Run conversion
     converter.run_conversion(

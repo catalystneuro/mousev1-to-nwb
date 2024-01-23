@@ -37,7 +37,7 @@ class Abdeladim2023HolographicStimulationInterface(BaseDataInterface):
         folder_path: FolderPathType,
         holographic_stimulation_file_path: FilePathType,
         epoch_name: str = None,
-        targeted_plane_segmentation: Optional[str] = None,
+        targeted_plane_segmentation_name: Optional[str] = None,
         verbose: bool = True,
     ):
         """
@@ -63,7 +63,7 @@ class Abdeladim2023HolographicStimulationInterface(BaseDataInterface):
 
         self.rois_metadata = extract_rois_metadata(tif_file_paths[0])
 
-        self.targeted_plane_segmentation = targeted_plane_segmentation or "TargetedPlaneSegmentation"
+        self.targeted_plane_segmentation_name = targeted_plane_segmentation_name or "PlaneSegmentationHologramTarget"
 
         data = h5py.File(holographic_stimulation_file_path, "r")
         self._targeted_to_segmented_roi_ids_map = data[epoch_name]["targeted_cells"]
@@ -170,7 +170,7 @@ class Abdeladim2023HolographicStimulationInterface(BaseDataInterface):
             origin_coords_unit="micrometers",
         )
         targeted_plane_segmentation = PlaneSegmentation(
-            name=self.targeted_plane_segmentation,
+            name=self.targeted_plane_segmentation_name,
             description="Targeted ROIs from the ScanImage metadata",
             imaging_plane=imaging_plane,
         )
@@ -187,7 +187,7 @@ class Abdeladim2023HolographicStimulationInterface(BaseDataInterface):
             pixel_coordinates_roi_centroid = np.round(pixel_coordinates_roi_centroid).astype(int)
             targeted_plane_segmentation.add_roi(pixel_mask=[pixel_coordinates_roi_centroid])
 
-        nwbfile.processing["ophys"].add(targeted_plane_segmentation)
+        nwbfile.processing["ophys"]["ImageSegmentation"].add_plane_segmentation(targeted_plane_segmentation)
 
         stimulus_table = PatternedOptogeneticStimulusTable(
             name="PatternedOptogeneticStimulusTable", description="Patterned stimulus"

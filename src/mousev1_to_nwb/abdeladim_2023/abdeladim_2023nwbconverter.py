@@ -1,13 +1,14 @@
 """Primary NWBConverter class for this dataset."""
 from typing import Dict
 from neuroconv import NWBConverter
-
-"""Primary NWBConverter class for this dataset."""
-from neuroconv.utils import FolderPathType, FilePathType, DeepDict, dict_deep_update
+from neuroconv.utils import FolderPathType, FilePathType
 from typing import Optional
 from abdeladim_2023imaginginterface import Abdeladim2023SinglePlaneImagingInterface
 from abdeladim_2023segmentationinterface import Abdeladim2023SegmentationInterface
 from abdeladim_2023holostiminterface import Abdeladim2023HolographicStimulationInterface
+from pynwb import NWBFile
+from pynwb.ophys import PlaneSegmentation
+import numpy as np
 
 
 def get_default_segmentation_to_imaging_name_mapping(
@@ -143,3 +144,64 @@ class Abdeladim2023NWBConverter(NWBConverter):
                     )
                 }
             )
+
+    def add_to_nwbfile(self, nwbfile: NWBFile, metadata, conversion_options: Optional[dict] = None) -> None:
+        super().add_to_nwbfile(nwbfile=nwbfile, metadata=metadata, conversion_options=conversion_options)
+
+        if "HolographicStimulation" in self.data_interface_objects.keys():
+            holographic_stimulation_interface = self.data_interface_objects["HolographicStimulation"]
+            segmentation_interface_names = [
+                interface_name
+                for interface_name in self.data_interface_objects.keys()
+                if interface_name.startswith("SegmentationChan1")
+            ]
+            imaging_plane = nwbfile.imaging_planes["ImagingPlaneHolographicStimulation"]
+
+            # create a plane segmentation for segmented ROIs
+            plane_segmentation = PlaneSegmentation(
+                name="PlaneSegmentationChannel1ConcatenatedPlanes",
+                description="Accepted Suite2p ROIs concatenated over the planes",
+                imaging_plane=imaging_plane,
+            )
+            for interface_name in segmentation_interface_names:
+                segmentation_interface = self.data_interface_objects[interface_name]
+                accepted_rois = segmentation_interface.segmentation_extractor.get_accepted_list()
+                accepted_roi_masks = segmentation_interface.segmentation_extractor.get_roi_pixel_masks(accepted_rois)
+
+                for roi_mask in accepted_roi_masks:
+                    plane_segmentation.add_roi(pixel_mask=roi_mask)
+
+            # create global ids to match targeted and succefully stimulated rois
+            targeted_to_segmented_roi_ids_map = holographic_stimulation_interface._targeted_to_segmented_roi_ids_map
+
+            segmented_to_glob_ids = np.array(plane_segmentation[:].index)
+
+            plane_segmentation.add_column(
+                name="global_ids",
+                description="Global roi ids to match targeted and segmented ROIs",
+                data=segmented_to_glob_ids,
+            )
+
+            targeted_not_stimulated_rois = targeted_to_segmented_roi_ids_map[
+                np.isnan(targeted_to_segmented_roi_ids_map)
+            ]
+            targeted_to_glob_ids = np.zeros((len(targeted_to_segmented_roi_ids_map)))
+            targeted_to_glob_ids[np.isnan(targeted_to_segmented_roi_ids_map)] = np.arange(
+                len(segmented_to_glob_ids), len(segmented_to_glob_ids) + len(targeted_not_stimulated_rois)
+            )
+            targeted_to_glob_ids[~np.isnan(targeted_to_segmented_roi_ids_map)] = targeted_to_segmented_roi_ids_map[
+                ~np.isnan(targeted_to_segmented_roi_ids_map)
+            ]
+
+            targeted_plane_segmentation = nwbfile.processing["ophys"]["ImageSegmentation"].get_plane_segmentation(
+                holographic_stimulation_interface.targeted_plane_segmentation_name
+            )
+
+
+            targeted_plane_segmentation.add_column(
+                name="global_ids",
+                description="Global roi ids to match targeted and segmented ROIs",
+                data=targeted_to_glob_ids.astype(int),
+            )
+
+            nwbfile.processing["ophys"]["ImageSegmentation"].add_plane_segmentation(plane_segmentation)

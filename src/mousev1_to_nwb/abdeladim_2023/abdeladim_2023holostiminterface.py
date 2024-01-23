@@ -5,7 +5,6 @@ from typing import Optional
 
 import numpy as np
 import h5py
-from hdmf.backends.hdf5 import H5DataIO
 from neuroconv import BaseDataInterface
 from neuroconv.tools.roiextractors.roiextractors import get_default_segmentation_metadata
 from neuroconv.utils import FolderPathType, FilePathType, get_base_schema, get_schema_from_hdmf_class
@@ -143,27 +142,32 @@ class Abdeladim2023HolographicStimulationInterface(BaseDataInterface):
         stim_site = PatternedOptogeneticStimulusSite(**stimulus_site_metadata)
         nwbfile.add_ogen_site(stim_site)
 
-        # Create a plane segmentation object for targeted ROIs 
-        # TODO reuse the one from Suite2p segmentation
+        # Create a plane segmentation object for targeted ROIs
         optical_channel = OpticalChannel(
-            name="OpticalChannel",
-            description="an optical channel",
+            name="Chan1",
+            description="Green channel of the microscope.",
             emission_lambda=500.0,
         )
-        imaging_plane_name = "ImagingPlane"
+
+        fov_size_in_um = np.array(self.rois_metadata["imagingRoiGroup"]["rois"]["scanfields"]["sizeXY"])
+        frame_dimesion = np.array(self.rois_metadata["imagingRoiGroup"]["rois"]["scanfields"]["pixelResolutionXY"])
+
+        imaging_plane_name = "ImagingPlaneHolographicStimulation"
         imaging_plane = nwbfile.create_imaging_plane(
             name=imaging_plane_name,
             optical_channel=optical_channel,
-            imaging_rate=30.0,
-            description="a very interesting part of the brain",
+            imaging_rate=float(
+                self.image_metadata["SI.hRoiManager.scanFrameRate"]
+            ),  # Frame rate on the entire volumetric stack
+            description="Imaging plane for the holographic stimulation",
             device=device,
-            excitation_lambda=600.0,
-            indicator="GFP",
-            location="V1",
-            grid_spacing=[0.01, 0.01],
-            grid_spacing_unit="meters",
-            origin_coords=[1.0, 2.0, 3.0],
-            origin_coords_unit="meters",
+            excitation_lambda=600.0,  # TODO update
+            indicator="GFP",  # TODO update
+            location="V1",  # TODO update
+            grid_spacing=fov_size_in_um / frame_dimesion,
+            grid_spacing_unit="micrometers",
+            origin_coords=self.rois_metadata["imagingRoiGroup"]["rois"]["scanfields"]["centerXY"],
+            origin_coords_unit="micrometers",
         )
         targeted_plane_segmentation = PlaneSegmentation(
             name=self.targeted_plane_segmentation,

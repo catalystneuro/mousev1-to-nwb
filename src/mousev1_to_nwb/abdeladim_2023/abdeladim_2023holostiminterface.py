@@ -14,8 +14,9 @@ from pynwb.ogen import OptogeneticStimulusSite
 from pynwb.ophys import PlaneSegmentation, OpticalChannel
 from natsort import natsorted
 from roiextractors.extractors.tiffimagingextractors.scanimagetiff_utils import (
-    extract_rois_metadata,
+    parse_metadata,
     extract_extra_metadata,
+    extract_timestamps_from_file,
 )
 from ndx_patterned_ogen import (
     PatternedOptogeneticStimulusTable,
@@ -58,10 +59,12 @@ class Abdeladim2023HolographicStimulationInterface(BaseDataInterface):
 
         self.trial_start_times = []
         for tif_file_path in tif_file_paths:
-            self.image_metadata = extract_extra_metadata(file_path=tif_file_path)
-            self.trial_start_times.append(float(self.image_metadata["frameTimestamps_sec"]))
+            timestamps = extract_timestamps_from_file(file_path=tif_file_path)
+            self.trial_start_times.append(timestamps[0]) 
 
-        self.rois_metadata = extract_rois_metadata(tif_file_paths[0])
+        self.image_metadata = extract_extra_metadata(file_path=tif_file_paths[0])
+        self.metadata_parsed = parse_metadata(self.image_metadata)
+        self.rois_metadata = self.metadata_parsed["roi_metadata"]
 
         self.targeted_plane_segmentation_name = targeted_plane_segmentation_name or "PlaneSegmentationHologramTarget"
 

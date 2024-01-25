@@ -147,9 +147,9 @@ class Abdeladim2023HolographicStimulationInterface(BaseDataInterface):
 
         # Create a plane segmentation object for targeted ROIs
         optical_channel = OpticalChannel(
-            name="Chan1",
-            description="Green channel of the microscope.",
-            emission_lambda=500.0,
+            name="Green",
+            description="Green channel for functional imaging.",
+            emission_lambda=513.0,
         )
 
         fov_size_in_um = np.array(self.rois_metadata["imagingRoiGroup"]["rois"]["scanfields"]["sizeXY"])
@@ -162,16 +162,17 @@ class Abdeladim2023HolographicStimulationInterface(BaseDataInterface):
             imaging_rate=float(
                 self.image_metadata["SI.hRoiManager.scanFrameRate"]
             ),  # Frame rate on the entire volumetric stack
-            description="Imaging plane for the holographic stimulation",
+            description="Imaging plane for the holographic stimulation.",
             device=device,
-            excitation_lambda=600.0,  # TODO update
-            indicator="GFP",  # TODO update
-            location="V1",  # TODO update
+            excitation_lambda=920.0,
+            indicator="GCaMP6s", 
+            location="Primary visual cortex (V1), 140-200 um below pia", 
             grid_spacing=fov_size_in_um / frame_dimesion,
             grid_spacing_unit="micrometers",
             origin_coords=self.rois_metadata["imagingRoiGroup"]["rois"]["scanfields"]["centerXY"],
             origin_coords_unit="micrometers",
         )
+
         targeted_plane_segmentation = PlaneSegmentation(
             name=self.targeted_plane_segmentation_name,
             description="Targeted ROIs from the ScanImage metadata",

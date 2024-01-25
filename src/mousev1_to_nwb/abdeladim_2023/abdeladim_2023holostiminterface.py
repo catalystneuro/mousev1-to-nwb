@@ -124,7 +124,7 @@ class Abdeladim2023HolographicStimulationInterface(BaseDataInterface):
 
         # Add SLM device to NWBFile
         spatial_light_modulator_metadata = metadata_copy["Ophys"]["OptogeneticDevice"]["SpatialLightModulator2D"]
-        spatial_light_modulator_metadata.update(spatial_resolution=[512, 512])
+        spatial_light_modulator_metadata.update(spatial_resolution=[1024, 1024])
         spatial_light_modulator_name = spatial_light_modulator_metadata["name"]
         if spatial_light_modulator_name not in nwbfile.devices:
             nwbfile.add_device(SpatialLightModulator2D(**spatial_light_modulator_metadata))

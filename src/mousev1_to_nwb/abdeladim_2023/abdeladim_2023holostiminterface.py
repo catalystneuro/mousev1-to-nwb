@@ -47,9 +47,13 @@ class Abdeladim2023HolographicStimulationInterface(BaseDataInterface):
         Parameters
         ----------
         folder_path : FolderPathType
-            The folder path that contains the holographic stimulation data.
-        plane_segmentation_name: str, optional
+            The folder path that contains the imaging data.
+        targeted_plane_segmentation_name: str, optional
             The name of the plane segmentation to use for the holographic stimulation.
+        holographic_stimulation_file_path: FilePathType
+            The file path for the .hdf5 file that contains the holographic stimulation data
+        epoch_name: str,
+            The name of the epoch where the holographic stimulation is carried out
         verbose : bool, default: True
         """
         self.folder_path = Path(folder_path)
@@ -69,6 +73,7 @@ class Abdeladim2023HolographicStimulationInterface(BaseDataInterface):
         self.targeted_plane_segmentation_name = targeted_plane_segmentation_name or "PlaneSegmentationHologramTarget"
 
         data = h5py.File(holographic_stimulation_file_path, "r")
+        # TODO check thta epoch_name is in data
         self._targeted_to_segmented_roi_ids_map = data[epoch_name]["targeted_cells"]
         self._hologram_list = data[epoch_name]["hologram_list"]
         self._trial_to_stimulation_ids_map = data[epoch_name]["stim_id"]

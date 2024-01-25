@@ -68,44 +68,40 @@ class Abdeladim2023SinglePlaneImagingInterface(BaseImagingExtractorInterface):
         # Extract many scan image properties and attach them as dict in the description
         if self.image_metadata is not None:
             extracted_description = json.dumps(self.image_metadata)
-            two_photon_series_metadata.update(description=extracted_description)
+            two_photon_series_metadata.update(comments=extracted_description)
 
         channel_name_without_space = self.channel_name.replace(" ", "")
 
-        # TODO indicators = {"Channel1": "GCaMP6f", "Channel2": "tdTomato"} # Not specified
+        imaging_plane_name = f"ImagingPlane{channel_name_without_space}Plane{self.plane_name}"
 
-        channel_metadata = {
+        optical_channel_metadata = {
             "Channel1": {
-                "name": "Green",
-                "emission_lambda": 500.0,# TODO Not specified
-                "description": "Green channel of the microscope",
+                "name": "GreenChannel", 
+                "emission_lambda": 513.0,
+                "description": "Green channel for functional imaging.",
             },
             "Channel2": {
-                "name": "Red",
-                "emission_lambda": 500.0,# TODO Not specified
-                "description": "Red channel of the microscope",
+                "name": "RedChannel",  
+                "emission_lambda": 592.0,
+                "description": "Red channel for anatomical imaging.",
             },
         }[channel_name_without_space]
 
-        optical_channel_metadata = channel_metadata
+        device_name = metadata["Ophys"]["Device"][0]["name"]
 
-        device_name = "CustomMicroscope"
-        metadata["Ophys"]["Device"][0].update(
-            name=device_name,
-            description="The mesoscale read/write platform was custom-built around a 2P random-access fluorescence mesoscope previously described in detail (Sofroniew 2016)",
-            manufacturer="Thorlabs Inc.",
-        )
+        indicator = {"Channel1": "GCaMP6f", "Channel2": "mRuby"}[channel_name_without_space]
 
-        # TODO indicator = indicators[channel_name_without_space]
-        imaging_plane_name = f"ImagingPlane{channel_name_without_space}Plane{self.plane_name}"
+        location = {"0":"Primary visual cortex (V1), 200 um below pia","1":"Primary visual cortex (V1), 170 um below pia","2":"Primary visual cortex (V1), 140 um below pia"}[self.plane_name]
+
         imaging_plane_metadata = metadata["Ophys"]["ImagingPlane"][0]
         imaging_plane_metadata.update(
             name=imaging_plane_name,
             optical_channel=[optical_channel_metadata],
             device=device_name,
-            excitation_lambda=920.0, # TODO Not specified
-            # TODO indicator=indicator,
+            excitation_lambda=920.0, 
+            indicator=indicator,
             imaging_rate=float(self.image_metadata["SI.hRoiManager.scanVolumeRate"]),
+            location=location,
         )
 
         two_photon_series_metadata = metadata["Ophys"]["TwoPhotonSeries"][0]

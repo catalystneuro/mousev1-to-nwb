@@ -64,7 +64,7 @@ class Abdeladim2023HolographicStimulationInterface(BaseDataInterface):
         self.trial_start_times = []
         for tif_file_path in tif_file_paths:
             timestamps = extract_timestamps_from_file(file_path=tif_file_path)
-            self.trial_start_times.append(timestamps[0]) 
+            self.trial_start_times.append(timestamps[0])
 
         self.image_metadata = extract_extra_metadata(file_path=tif_file_paths[0])
         self.metadata_parsed = parse_metadata(self.image_metadata)
@@ -170,8 +170,8 @@ class Abdeladim2023HolographicStimulationInterface(BaseDataInterface):
             description="Imaging plane for the holographic stimulation.",
             device=device,
             excitation_lambda=920.0,
-            indicator="GCaMP6s", 
-            location="Primary visual cortex (V1), 140-200 um below pia", 
+            indicator="GCaMP6s",
+            location="Primary visual cortex (V1), 140-200 um below pia",
             grid_spacing=fov_size_in_um / frame_dimesion,
             grid_spacing_unit="micrometers",
             origin_coords=self.rois_metadata["imagingRoiGroup"]["rois"]["scanfields"]["centerXY"],
@@ -211,15 +211,16 @@ class Abdeladim2023HolographicStimulationInterface(BaseDataInterface):
                 roi_group = self._hologram_list[hologram_index]
                 roi_indexes = roi_group[~np.isnan(roi_group)].astype(int)
                 if len(roi_indexes) > 0:
-                    # targeted_rois = targeted_rois[roi_group] # se puntassero a indice
+                    # region = targeted_rois[roi_group] # if hologram_list values are targeted_cell indexes
+                    region = [
+                        i
+                        for i, roi_index in enumerate(self._targeted_to_segmented_roi_ids_map)
+                        if roi_index in roi_indexes
+                    ]
                     targeted_rois = targeted_plane_segmentation.create_roi_table_region(
                         name="targeted_rois",
                         description="targeted rois",
-                        region=[
-                            i
-                            for i, roi_index in enumerate(self._targeted_to_segmented_roi_ids_map)
-                            if roi_index in roi_indexes
-                        ],
+                        region=region,
                     )
                     hologram_name = f"Hologram{hologram_index}"
                     hologram = OptogeneticStimulusTarget(name=hologram_name, targeted_rois=targeted_rois)

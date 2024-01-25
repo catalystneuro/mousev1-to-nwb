@@ -13,5 +13,5 @@ Subject:
   genotype: SST-Cre/wt;CaMK2-tTA/wt;tetO-GCaMP6s/wt
   age: P120D
   sex: F
-  weight: 0.025 kg
+  weight: 0.025 # in the units of kg
   strain: C57BL/6J

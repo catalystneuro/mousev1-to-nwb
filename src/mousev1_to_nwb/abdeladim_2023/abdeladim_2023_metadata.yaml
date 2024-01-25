@@ -11,6 +11,10 @@ NWBFile:
     - Abdeladim, Lamiae
     - Adesnik, Hillel
 Subject:
-  species: Rattus norvegicus
-  age: P1W2D  #TODO check
-  sex: U  #TODO check
+  species: Mus musculus
+  genotype: SST-Cre/wt;CaMK2-tTA/wt;tetO-GCaMP6s/wt
+  age: P120D
+  sex: F
+  weight: 0.025 kg
+  strain: C57BL/6J
+

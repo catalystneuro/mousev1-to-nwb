@@ -76,29 +76,38 @@ class Abdeladim2023SinglePlaneImagingInterface(BaseImagingExtractorInterface):
 
         optical_channel_metadata = {
             "Channel1": {
-                "name": "GreenChannel", 
+                "name": "GreenChannel",
                 "emission_lambda": 513.0,
                 "description": "Green channel for functional imaging.",
             },
             "Channel2": {
-                "name": "RedChannel",  
+                "name": "RedChannel",
                 "emission_lambda": 592.0,
                 "description": "Red channel for anatomical imaging.",
             },
         }[channel_name_without_space]
 
-        device_name = metadata["Ophys"]["Device"][0]["name"]
+        device_name = "CustomMicroscope"
+        metadata["Ophys"]["Device"][0].update(
+            name=device_name,
+            description="The mesoscale read/write platform was custom-built around a 2P random-access fluorescence mesoscope previously described in detail (Sofroniew 2016)",
+            manufacturer="Thorlabs Inc.",
+        )
 
         indicator = {"Channel1": "GCaMP6f", "Channel2": "mRuby"}[channel_name_without_space]
 
-        location = {"0":"Primary visual cortex (V1), 200 um below pia","1":"Primary visual cortex (V1), 170 um below pia","2":"Primary visual cortex (V1), 140 um below pia"}[self.plane_name]
+        location = {
+            "0": "Primary visual cortex (V1), 200 um below pia",
+            "1": "Primary visual cortex (V1), 170 um below pia",
+            "2": "Primary visual cortex (V1), 140 um below pia",
+        }[self.plane_name]
 
         imaging_plane_metadata = metadata["Ophys"]["ImagingPlane"][0]
         imaging_plane_metadata.update(
             name=imaging_plane_name,
             optical_channel=[optical_channel_metadata],
             device=device_name,
-            excitation_lambda=920.0, 
+            excitation_lambda=920.0,
             indicator=indicator,
             imaging_rate=float(self.image_metadata["SI.hRoiManager.scanVolumeRate"]),
             location=location,

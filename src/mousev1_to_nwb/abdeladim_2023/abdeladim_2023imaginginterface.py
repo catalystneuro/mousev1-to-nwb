@@ -65,11 +65,6 @@ class Abdeladim2023SinglePlaneImagingInterface(BaseImagingExtractorInterface):
         ophys_metadata = metadata["Ophys"]
         two_photon_series_metadata = ophys_metadata["TwoPhotonSeries"][0]
 
-        # Extract many scan image properties and attach them as dict in the description
-        if self.image_metadata is not None:
-            extracted_description = json.dumps(self.image_metadata)
-            two_photon_series_metadata.update(comments=extracted_description)
-
         channel_name_without_space = self.channel_name.replace(" ", "")
 
         imaging_plane_name = f"ImagingPlane{channel_name_without_space}Plane{self.plane_name}"

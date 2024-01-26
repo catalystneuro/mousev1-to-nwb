@@ -2,6 +2,8 @@ from neuroconv.datainterfaces.ophys.basesegmentationextractorinterface import Ba
 from roiextractors.extractors.suite2p.suite2psegmentationextractor import Suite2pSegmentationExtractor
 from neuroconv.utils import DeepDict, FolderPathType
 from neuroconv.datainterfaces.ophys.suite2p.suite2pdatainterface import Suite2pSegmentationInterface
+from typing import Optional
+
 
 class Abdeladim2023SegmentationInterface(Suite2pSegmentationInterface):
     """
@@ -20,6 +22,14 @@ class Abdeladim2023SegmentationInterface(Suite2pSegmentationInterface):
         end_frame: int,
         verbose: bool = True,
     ):
-        
-        super().__init__(folder_path=folder_path, channel_name=channel_name, plane_name=plane_name, plane_segmentation_name=plane_segmentation_name, verbose=verbose)
-        self.segmentation_extractor=self.segmentation_extractor.frame_slice(start_frame=start_frame,end_frame=end_frame)
+        super().__init__(
+            folder_path=folder_path,
+            channel_name=channel_name,
+            plane_name=plane_name,
+            plane_segmentation_name=plane_segmentation_name,
+            verbose=verbose,
+        )
+        self.segmentation_extractor = self.segmentation_extractor.frame_slice(
+            start_frame=start_frame, end_frame=end_frame
+        )
+

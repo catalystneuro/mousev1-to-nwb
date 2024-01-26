@@ -1,6 +1,7 @@
 """Primary NWBConverter class for this dataset."""
 from typing import Dict
 from neuroconv import NWBConverter
+from neuroconv.utils.dict import DeepDict
 
 """Primary NWBConverter class for this dataset."""
 from neuroconv.utils import FolderPathType
@@ -28,7 +29,9 @@ def get_default_segmentation_to_imaging_name_mapping(
     si_available_channels = [channel_name.replace(" ", "") for channel_name in si_available_channels]
     si_available_planes = Abdeladim2023SinglePlaneImagingInterface.get_available_planes(folder_path=imaging_folder_path)
 
-    s2p_available_channels = Abdeladim2023SegmentationInterface.get_available_channels(folder_path=segmentation_folder_path)
+    s2p_available_channels = Abdeladim2023SegmentationInterface.get_available_channels(
+        folder_path=segmentation_folder_path
+    )
     s2p_available_planes = Abdeladim2023SegmentationInterface.get_available_planes(folder_path=segmentation_folder_path)
 
     if len(s2p_available_channels) == 1 and len(s2p_available_planes) == 1:
@@ -82,17 +85,19 @@ class Abdeladim2023NWBConverter(NWBConverter):
                 channel_name_without_space = channel_name.replace(" ", "")
                 imaging_interface_name = f"Imaging{channel_name_without_space}Plane{plane_name}"
                 imaging_source_data = dict(
-                        folder_path=imaging_folder_path,
-                        channel_name=channel_name,
-                        plane_name=plane_name,
-                        verbose=verbose,
+                    folder_path=imaging_folder_path,
+                    channel_name=channel_name,
+                    plane_name=plane_name,
+                    verbose=verbose,
                 )
                 self.data_interface_objects.update(
                     {imaging_interface_name: Abdeladim2023SinglePlaneImagingInterface(**imaging_source_data)}
                 )
 
         if segmentation_folder_path:
-            available_planes = Abdeladim2023SegmentationInterface.get_available_planes(folder_path=segmentation_folder_path)
+            available_planes = Abdeladim2023SegmentationInterface.get_available_planes(
+                folder_path=segmentation_folder_path
+            )
             available_channels = Abdeladim2023SegmentationInterface.get_available_channels(
                 folder_path=segmentation_folder_path
             )
@@ -112,11 +117,27 @@ class Abdeladim2023NWBConverter(NWBConverter):
                         plane_segmentation_name = "PlaneSegmentation" + self.plane_map.get(
                             plane_name_suffix, None
                         ).replace("_", "")
-                        segmentation_source_data.update(
-                            plane_segmentation_name=plane_segmentation_name,
-                        )
+                        segmentation_source_data.update(plane_segmentation_name=plane_segmentation_name)
                     Abdeladim2023SegmentationInterface(**segmentation_source_data)
                     self.data_interface_objects.update(
                         {segmentation_interface_name: Abdeladim2023SegmentationInterface(**segmentation_source_data)}
                     )
 
+    def get_metadata(self) -> DeepDict:
+        metadata = super().get_metadata()
+        for interface_name in self.data_interface_objects.keys():
+            if "Imaging" in interface_name:
+                imaging_metadata = self.data_interface_objects[interface_name].get_metadata()
+                device_metadata = imaging_metadata["Ophys"]["Device"]
+                metadata["Ophys"]["Device"] = device_metadata
+                break
+        for interface_name in self.data_interface_objects.keys():
+            if "Imaging" in interface_name:
+                imaging_metadata = self.data_interface_objects[interface_name].get_metadata()
+                imaging_plane_metadata_name = imaging_metadata["Ophys"]["ImagingPlane"][0]["name"]
+                for metadata_ind in range(len(metadata["Ophys"]["ImagingPlane"])): 
+                    if imaging_plane_metadata_name == metadata["Ophys"]["ImagingPlane"][metadata_ind]["name"]:
+                        metadata["Ophys"]["ImagingPlane"][metadata_ind]=imaging_metadata["Ophys"]["ImagingPlane"][0]              
+
+
+        return metadata

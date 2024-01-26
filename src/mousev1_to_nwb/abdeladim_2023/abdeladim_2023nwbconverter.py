@@ -1,14 +1,11 @@
 """Primary NWBConverter class for this dataset."""
-from typing import Dict
 from neuroconv import NWBConverter
-from neuroconv.utils import FolderPathType, FilePathType
+from neuroconv.utils import FolderPathType, FilePathType, DeepDict
 from typing import Optional
 from abdeladim_2023imaginginterface import Abdeladim2023SinglePlaneImagingInterface
 from abdeladim_2023segmentationinterface import Abdeladim2023SegmentationInterface
 from abdeladim_2023holostiminterface import Abdeladim2023HolographicStimulationInterface
-from pynwb import NWBFile
-from pynwb.ophys import PlaneSegmentation
-import numpy as np
+
 
 
 def get_default_segmentation_to_imaging_name_mapping(
@@ -120,9 +117,7 @@ class Abdeladim2023NWBConverter(NWBConverter):
                         plane_segmentation_name = "PlaneSegmentation" + self.plane_map.get(
                             plane_name_suffix, None
                         ).replace("_", "")
-                        segmentation_source_data.update(
-                            plane_segmentation_name=plane_segmentation_name,
-                        )
+                        segmentation_source_data.update(plane_segmentation_name=plane_segmentation_name)
                     Abdeladim2023SegmentationInterface(**segmentation_source_data)
                     self.data_interface_objects.update(
                         {segmentation_interface_name: Abdeladim2023SegmentationInterface(**segmentation_source_data)}
@@ -144,3 +139,22 @@ class Abdeladim2023NWBConverter(NWBConverter):
                     )
                 }
             )
+
+    def get_metadata(self) -> DeepDict:
+        metadata = super().get_metadata()
+        for interface_name in self.data_interface_objects.keys():
+            if "Imaging" in interface_name:
+                imaging_metadata = self.data_interface_objects[interface_name].get_metadata()
+                device_metadata = imaging_metadata["Ophys"]["Device"]
+                metadata["Ophys"]["Device"] = device_metadata
+                break
+        for interface_name in self.data_interface_objects.keys():
+            if "Imaging" in interface_name:
+                imaging_metadata = self.data_interface_objects[interface_name].get_metadata()
+                imaging_plane_metadata_name = imaging_metadata["Ophys"]["ImagingPlane"][0]["name"]
+                for metadata_ind in range(len(metadata["Ophys"]["ImagingPlane"])): 
+                    if imaging_plane_metadata_name == metadata["Ophys"]["ImagingPlane"][metadata_ind]["name"]:
+                        metadata["Ophys"]["ImagingPlane"][metadata_ind]=imaging_metadata["Ophys"]["ImagingPlane"][0]              
+
+
+        return metadata

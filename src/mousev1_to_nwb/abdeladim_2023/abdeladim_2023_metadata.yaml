@@ -1,19 +1,20 @@
 NWBFile:
-  related_publications:
-    - https://www.biorxiv.org/content/10.1101/2023.03.02.530875v2.full
-    - https://www.biorxiv.org/content/10.1101/2022.09.20.508739v1.full
-    - https://www.sciencedirect.com/science/article/pii/S2211124723009208
-  session_description:
-    A rich text description of the experiment. Can also just be the abstract of the publication.
-  institution: Institution where the lab is located
-  lab: Mousev1
+  keywords: [2-photon, calcium imaging, photostimulation, optogenetics, temporal focusing, patterned optogenetics, visual cortex, mouse]
+  session_description: Headfixed 2-photon calcium imaging and photostimulation of visual cortex.
+  experiment_description: Holographic stimulation of single cells and ensembles of co-tuned cells in primary visual cortex.
+  institution: UC Berkeley
+  lab: Adesnik
   experimenter:
-    - Abdeladim, Lamiae
-    - Adesnik, Hillel
+    - Hendricks, Will
+  surgery: Craniotomy and headplate implantation performed under isoflurane anesthesia. Mice were allowed to recover for 1 week before imaging.
+  virus: AAV.PhP-TRE-ChroME2s-P2A-NLS-mRuby3
 Subject:
-  species: Rattus norvegicus
-  age: P1W2D  #TODO check
-  sex: U  #TODO check
+  species: Mus musculus
+  genotype: SST-Cre/wt;CaMK2-tTA/wt;tetO-GCaMP6s/wt
+  age: P120D
+  sex: F
+  weight: '0.025' # in the units of kg
+  strain: C57BL/6J
 Ophys:
   Device:
     - name: CustomMicroscope

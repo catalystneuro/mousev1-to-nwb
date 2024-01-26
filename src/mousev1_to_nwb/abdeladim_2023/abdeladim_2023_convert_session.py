@@ -34,7 +34,7 @@ def session_to_nwb(
         imaging_folder_path, segmentation_folder_path
     )
     # Check if session has holographic photostimulation data
-    holographic_stimulation_file_path = data_dir_path / "example_data.hdf5"
+    holographic_stimulation_file_path = data_dir_path / "example_data_rev20242501.hdf5"
     holographic_stimulation_data = h5py.File(holographic_stimulation_file_path, "r")
     if epoch_name not in holographic_stimulation_data.keys():
         holographic_stimulation_file_path = None

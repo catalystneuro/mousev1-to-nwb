@@ -34,7 +34,7 @@ def check_optogenetic_stim_data(
     fields_to_check: list = [
         "targeted_cells",
         "stim_id",
-        "power_per_cell",
+        "roi_powers_mW",
         "hz_per_cell",
         "spikes_per_cell",
         "stim_times",
@@ -99,7 +99,7 @@ class Abdeladim2023HolographicStimulationInterface(BaseDataInterface):
         self.metadata_parsed = parse_metadata(self.image_metadata)
         self.rois_metadata = self.metadata_parsed["roi_metadata"]
 
-        self.targeted_plane_segmentation_name = targeted_plane_segmentation_name or "PlaneSegmentationHologramTarget"
+        self.targeted_plane_segmentation_name = targeted_plane_segmentation_name or "PlaneSegmentationTargetedHologram"
         try:
             check_optogenetic_stim_data(file_path=holographic_stimulation_file_path, epoch_name=epoch_name)
         except ValueError as ve:
@@ -112,11 +112,13 @@ class Abdeladim2023HolographicStimulationInterface(BaseDataInterface):
         self._scanimage_hologram_list = data["scanimage_hologram_list"][:]
         self._scanimage_target_coordinates = data["scanimage_targets"][:]
         self._trial_to_stimulation_ids_map = data["stim_id"][:]
-        self._power_per_trial = data["power_per_cell"][:]
+        # self._power_per_trial = data["power_per_cell"][:]
         self._frequency_per_trial = data["hz_per_cell"][:]
         self._n_spike_per_trial = data["spikes_per_cell"][:]
         self._stimulus_time_per_targeted_rois = data["stim_times"][:]
+        self._stimulus_power_per_targeted_rois = data["roi_powers_mW"][:]
 
+        self.epoch_name = epoch_name
         super().__init__(folder_path=folder_path)
         self.verbose = verbose
 
@@ -291,28 +293,38 @@ class Abdeladim2023HolographicStimulationInterface(BaseDataInterface):
                     )
                     hologram_name = f"Hologram{hologram_index}"
                     hologram = OptogeneticStimulusTarget(
-                        name=hologram_name, 
-                        targeted_rois=targeted_rois, 
-                        segmented_rois=segmented_rois
+                        name=hologram_name, targeted_rois=targeted_rois, segmented_rois=segmented_rois
                     )
                     if hologram_name not in nwbfile.lab_meta_data:
                         nwbfile.add_lab_meta_data(hologram)
 
                     trial_start_time = self.trial_start_times[trial]
-                    power = self._power_per_trial[trial]
                     frequency = self._frequency_per_trial[trial]
                     n_spike = self._n_spike_per_trial[trial]
+                    stimulus_power = self._stimulus_power_per_targeted_rois[targeted_roi_indexes]
                     stimulus_time = self._stimulus_time_per_targeted_rois[targeted_roi_indexes]
-                    start_time = trial_start_time + stimulus_time[0]
+                    start_time = trial_start_time + stimulus_time
                     stop_time = start_time + np.round(n_spike / frequency, decimals=2)
-                    if ~np.isnan(start_time):
-                        stimulus_table.add_interval(
-                            start_time=start_time,
-                            stop_time=stop_time,
-                            power=power,
-                            frequency=frequency,
-                            stimulus_pattern=temporal_focusing,
-                            targets=nwbfile.lab_meta_data[hologram_name],
-                            stimulus_site=stim_site,
-                        )
-        nwbfile.add_time_intervals(stimulus_table)
+                    # Since each roi in the Hologram receive the stimuli at different times and different power, 
+                    # here we add one interval for each stimulus time and indicate which roi has been stimulated 
+                    # by setting power as an 1D array where the only non-zero element would be 
+                    # the one reffered to the roi stimulated in the current stimulus onset.
+                    # NB: if "power" is defined as array it must have the same lenght as "targeted_rois"
+                    for i in range(len(targeted_roi_indexes)):
+                        if ~np.isnan(start_time[i]) and ~np.isnan(stimulus_power[i]):
+                            power = np.zeros((len(targeted_roi_indexes)))
+                            power[i] = stimulus_power[i]
+                            stimulus_table.add_interval(
+                                start_time=start_time[i],
+                                stop_time=stop_time[i],
+                                power=power,
+                                frequency=frequency,
+                                stimulus_pattern=temporal_focusing,
+                                targets=nwbfile.lab_meta_data[hologram_name],
+                                stimulus_site=stim_site,
+                            )
+        if len(stimulus_table["start_time"]) == 0:
+            print(f"No stimulus onset has been found in {self.epoch_name}")
+            print("No PatternedOptogeneticStimulusTable will be created")
+        else:
+            nwbfile.add_time_intervals(stimulus_table)

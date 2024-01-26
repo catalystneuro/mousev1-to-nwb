@@ -45,18 +45,20 @@ def check_optogenetic_stim_data(
 ):
     with h5py.File(file_path, "r") as file:
         if epoch_name not in file:
-            raise ValueError(f"'{epoch_name}' is not a valid name for an epoch with holographic stimulation. "
-                             f"This file only contains holographic stimulation data for epochs: {list(file.keys())}")
+            raise ValueError(
+                f"'{epoch_name}' is not a valid name for an epoch with holographic stimulation. "
+                f"This file only contains holographic stimulation data for epochs: {list(file.keys())}"
+            )
 
         else:
-            for i in fields_to_check: 
+            for i in fields_to_check:
                 if i not in file[epoch_name]:
-                    raise ValueError(f"'{i}' missing from {epoch_name} holographic stimulation data")   
+                    raise ValueError(f"'{i}' missing from {epoch_name} holographic stimulation data")
 
 
 class Abdeladim2023HolographicStimulationInterface(BaseDataInterface):
     """
-    Data Interface for writing holographic photostimulation data for the MouseV1 to NWB file 
+    Data Interface for writing holographic photostimulation data for the MouseV1 to NWB file
     using Abdeladim2023HolographicStimulationInterface.
     """
 
@@ -99,7 +101,7 @@ class Abdeladim2023HolographicStimulationInterface(BaseDataInterface):
 
         self.targeted_plane_segmentation_name = targeted_plane_segmentation_name or "PlaneSegmentationHologramTarget"
         try:
-            check_optogenetic_stim_data(file_path=holographic_stimulation_file_path,epoch_name=epoch_name)
+            check_optogenetic_stim_data(file_path=holographic_stimulation_file_path, epoch_name=epoch_name)
         except ValueError as ve:
             print(f"Error: {str(ve)}")
 
@@ -211,6 +213,27 @@ class Abdeladim2023HolographicStimulationInterface(BaseDataInterface):
             origin_coords_unit="micrometers",
         )
 
+        # Add plane segmentation to store the Accepted Suite2p ROIs concatenated over the planes
+        plane_segmentation = PlaneSegmentation(
+            name="PlaneSegmentationChannel1ConcatenatedPlanes",
+            description="Accepted Suite2p ROIs concatenated over the planes",
+            imaging_plane=imaging_plane,
+        )
+
+        for segmented_roi in self._suite2p_segmented_coordinates:
+            plane_segmentation.add_roi(voxel_mask=[np.append(segmented_roi, 1)])
+
+        # add global_ids
+        segmented_to_glob_ids = np.array(plane_segmentation[:].index)
+        plane_segmentation.add_column(
+            name="global_ids",
+            description="Global roi ids to match targeted and segmented ROIs",
+            data=segmented_to_glob_ids,
+        )
+
+        nwbfile.processing["ophys"]["ImageSegmentation"].add_plane_segmentation(plane_segmentation)
+
+        # Add plane segmentation to store the targeted ROIs
         targeted_plane_segmentation = PlaneSegmentation(
             name=self.targeted_plane_segmentation_name,
             description="Targeted ROIs from the ScanImage metadata",
@@ -218,7 +241,25 @@ class Abdeladim2023HolographicStimulationInterface(BaseDataInterface):
         )
 
         for target_roi in self._scanimage_target_coordinates:
-            targeted_plane_segmentation.add_roi(pixel_mask=[target_roi])
+            targeted_plane_segmentation.add_roi(voxel_mask=[np.append(target_roi, 1)])
+
+        # add global_ids
+        targeted_not_stimulated_rois = self._targeted_to_segmented_roi_ids_map[
+            np.isnan(self._targeted_to_segmented_roi_ids_map)
+        ]
+        targeted_to_glob_ids = np.zeros((len(self._targeted_to_segmented_roi_ids_map)))
+        targeted_to_glob_ids[np.isnan(self._targeted_to_segmented_roi_ids_map)] = np.arange(
+            len(segmented_to_glob_ids), len(segmented_to_glob_ids) + len(targeted_not_stimulated_rois)
+        )
+        targeted_to_glob_ids[
+            ~np.isnan(self._targeted_to_segmented_roi_ids_map)
+        ] = self._targeted_to_segmented_roi_ids_map[~np.isnan(self._targeted_to_segmented_roi_ids_map)]
+
+        targeted_plane_segmentation.add_column(
+            name="global_ids",
+            description="Global roi ids to match targeted and segmented ROIs",
+            data=targeted_to_glob_ids.astype(int),
+        )
 
         nwbfile.processing["ophys"]["ImageSegmentation"].add_plane_segmentation(targeted_plane_segmentation)
 
@@ -232,21 +273,28 @@ class Abdeladim2023HolographicStimulationInterface(BaseDataInterface):
             # create hologram from hologram list
             if hologram_index != 0:  #
                 hologram_index = hologram_index - 1
-                roi_group = self._scanimage_hologram_list[hologram_index]
-                roi_group = list(roi_group[~np.isnan(roi_group)].astype(int))
-                if len(roi_group) > 0:
-                    # region = [
-                    #     i
-                    #     for i, roi_index in enumerate(self._targeted_to_segmented_roi_ids_map)
-                    #     if roi_index in roi_indexes
-                    # ]
+                targeted_roi_indexes = self._scanimage_hologram_list[hologram_index]
+                targeted_roi_indexes = list(targeted_roi_indexes[~np.isnan(targeted_roi_indexes)].astype(int))
+                segmented_roi_indexes = self._targeted_to_segmented_roi_ids_map[targeted_roi_indexes]
+                segmented_roi_indexes = list(segmented_roi_indexes[~np.isnan(segmented_roi_indexes)].astype(int))
+
+                if len(targeted_roi_indexes) > 0:
                     targeted_rois = targeted_plane_segmentation.create_roi_table_region(
                         name="targeted_rois",
                         description="targeted rois",
-                        region=roi_group,
+                        region=targeted_roi_indexes,
+                    )
+                    segmented_rois = plane_segmentation.create_roi_table_region(
+                        name="segmented_rois",
+                        description="segmented rois",
+                        region=segmented_roi_indexes,
                     )
                     hologram_name = f"Hologram{hologram_index}"
-                    hologram = OptogeneticStimulusTarget(name=hologram_name, targeted_rois=targeted_rois)
+                    hologram = OptogeneticStimulusTarget(
+                        name=hologram_name, 
+                        targeted_rois=targeted_rois, 
+                        segmented_rois=segmented_rois
+                    )
                     if hologram_name not in nwbfile.lab_meta_data:
                         nwbfile.add_lab_meta_data(hologram)
 
@@ -254,7 +302,7 @@ class Abdeladim2023HolographicStimulationInterface(BaseDataInterface):
                     power = self._power_per_trial[trial]
                     frequency = self._frequency_per_trial[trial]
                     n_spike = self._n_spike_per_trial[trial]
-                    stimulus_time = self._stimulus_time_per_targeted_rois[roi_group]
+                    stimulus_time = self._stimulus_time_per_targeted_rois[targeted_roi_indexes]
                     start_time = trial_start_time + stimulus_time[0]
                     stop_time = start_time + np.round(n_spike / frequency, decimals=2)
                     if ~np.isnan(start_time):

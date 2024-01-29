@@ -99,10 +99,13 @@ if __name__ == "__main__":
     stub_test = False  # for some reason does not work for iamging data
 
     subject_id = "w57_1"  # "w51_1", "w57_1"
+    epoch_name = "3ori"
 
-    epochs_names = ["2ret", "3ori", "4ori", "5stim", "6stim", "7expt"]
-    epoch_index = 3
-    epoch_name = epochs_names[epoch_index]
+    epoch_names = ["2ret", "3ori", "4ori", "5stim", "6stim", "7expt"]
+    try:
+        epoch_index = epoch_names.index("3ori")
+    except ValueError:
+        print("'3ori' not found in the list of possible epoch_names.")
 
     segmentation_folder_path = data_dir_path / "processed-suite2p-data/suite2p/plane0"
     file_npy_path = segmentation_folder_path / "ops.npy"

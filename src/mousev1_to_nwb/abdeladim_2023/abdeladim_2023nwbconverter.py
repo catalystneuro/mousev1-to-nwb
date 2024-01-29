@@ -1,13 +1,11 @@
 """Primary NWBConverter class for this dataset."""
-from typing import Dict
 from neuroconv import NWBConverter
-from neuroconv.utils.dict import DeepDict
-
-"""Primary NWBConverter class for this dataset."""
-from neuroconv.utils import FolderPathType
+from neuroconv.utils import FolderPathType, FilePathType, DeepDict
 from typing import Optional
 from abdeladim_2023imaginginterface import Abdeladim2023SinglePlaneImagingInterface
 from abdeladim_2023segmentationinterface import Abdeladim2023SegmentationInterface
+from abdeladim_2023visualstimulusinterface import Abdeladim2023VisualStimuliInterface
+
 
 
 def get_default_segmentation_to_imaging_name_mapping(
@@ -67,6 +65,8 @@ class Abdeladim2023NWBConverter(NWBConverter):
         segmentation_to_imaging_map: dict = None,
         segmentation_start_frame: int = 0,
         segmentation_end_frame: int = 100,
+        visual_stimulus_file_path: Optional[FilePathType] = None,
+        visual_stimulus_type: Optional[str] = None,
         verbose: bool = True,
     ):
         self.verbose = verbose
@@ -74,14 +74,14 @@ class Abdeladim2023NWBConverter(NWBConverter):
 
         self.plane_map = segmentation_to_imaging_map
 
-        available_channels = Abdeladim2023SinglePlaneImagingInterface.get_available_channels(
+        self.available_channels = Abdeladim2023SinglePlaneImagingInterface.get_available_channels(
             folder_path=imaging_folder_path
         )
-        available_planes = Abdeladim2023SinglePlaneImagingInterface.get_available_planes(
+        self.available_planes = Abdeladim2023SinglePlaneImagingInterface.get_available_planes(
             folder_path=imaging_folder_path
         )
-        for channel_name in available_channels:
-            for plane_name in available_planes:
+        for channel_name in self.available_channels:
+            for plane_name in self.available_planes:
                 channel_name_without_space = channel_name.replace(" ", "")
                 imaging_interface_name = f"Imaging{channel_name_without_space}Plane{plane_name}"
                 imaging_source_data = dict(
@@ -122,6 +122,22 @@ class Abdeladim2023NWBConverter(NWBConverter):
                     self.data_interface_objects.update(
                         {segmentation_interface_name: Abdeladim2023SegmentationInterface(**segmentation_source_data)}
                     )
+        if visual_stimulus_file_path and visual_stimulus_type:
+            visual_stimulus_interface_name = "VisualStimulus"
+            visual_stimulus_source_data = dict(
+                folder_path=imaging_folder_path,
+                visual_stimulus_file_path=visual_stimulus_file_path,
+                visual_stimulus_type=visual_stimulus_type,
+                verbose=verbose,
+            )
+            Abdeladim2023VisualStimuliInterface(**visual_stimulus_source_data)
+            self.data_interface_objects.update(
+                {
+                    visual_stimulus_interface_name: Abdeladim2023VisualStimuliInterface(
+                        **visual_stimulus_source_data
+                    )
+                }
+            )
 
     def get_metadata(self) -> DeepDict:
         metadata = super().get_metadata()

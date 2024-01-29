@@ -1,0 +1,30 @@
+Ophys:
+  OptogeneticDevice:
+    SpatialLightModulator2D:
+      name: SpatialLightModulator2D
+      description: Spatial light modulator for optogenetic stimulation.
+      manufacturer: Meadowlark Optics
+      model: 1024 x 1024 1kHz SLM.
+    LightSource:
+      name: LightSource
+      description: Laser for optogenetic stimulation.
+      manufacturer: Coherent, Inc.
+      model: Monaco 40 W
+      stimulation_wavelength: 1040.0 # nm
+      intensity: 20 # uJ
+      peak_power: 40 # W
+      pulse_rate: 2000000 #Hz
+      exposure_time: 0.005 #s
+  OptogeneticStimulusSite:
+    - name: OptogeneticStimulusSite
+      description: The targeted location of the holographic stimulation.
+      excitation_lambda: 1040.0 # nm
+      effector: ChroME2s 
+      location: Primary visual cortex (V1), 140-200 um below pia
+
+LabMetaData:
+  TemporalFocusing:
+    name: TemporalFocusing
+    description: The temporal focusing pattern applied to the optogenetic stimulation.
+    lateral_point_spread_function: 14 um ± 0.1 um
+    axial_point_spread_function: 10 um ± 0.1 um

@@ -9,6 +9,7 @@ from natsort import natsorted
 from roiextractors.extractors.tiffimagingextractors.scanimagetiff_utils import extract_timestamps_from_file
 import numpy as np
 
+
 def h5py_to_dict(item):
     if isinstance(item, h5py.Group):
         group_dict = {}
@@ -17,6 +18,25 @@ def h5py_to_dict(item):
         return group_dict
     elif isinstance(item, h5py.Dataset):
         return item[()]
+    else:
+        return None
+
+
+def match_field_description(field_name):
+    field_description = {
+        "orientation": "orientation of drifting grating in degrees (0-360)",
+        "size_vdeg": "size of stimulus in visual degrees, 1d of length n trials",
+        "contrast": "contrast of gratings, values between 0-1",
+        "location": "(X,Y) location on screen in visual degrees",
+        "vis_orientation_tuning_example": "Visual Orientation Tuning",
+        "vis_orientation_tuning": "Visual Orientation Tuning",  # TODO add a more descriptive text
+        "vis_retinotopy_example": "Retinotopy",
+        "vis_retinotopy": "Retinotopy",  # TODO add a more descriptive text
+        "vis_simple_example": "Simple Visual Stimuls",
+        "vis_simple": "Simple Visual Stimuls",  # TODO add a more descriptive text
+    }
+    if field_name in field_description.keys():
+        return field_description[field_name]
     else:
         return None
 
@@ -74,20 +94,28 @@ class Abdeladim2023VisualStimuliInterface(BaseDataInterface):
         stub_test: bool = False,
     ) -> None:
         stimulus_table = TimeIntervals(
-            name=self.visual_stimulus_type,
-            description=self.visual_stimulus_type.replace("_", " "),
+            name="VisualStimuli",
+            description=match_field_description(self.visual_stimulus_type)
+            or self.visual_stimulus_type.replace("_", " "),
         )
         start_times = self.trial_start_times + self.visual_stim_dict["vis_times"][0]
         stop_times = self.trial_start_times + self.visual_stim_dict["vis_times"][1]
         for t in range(self._total_number_of_trials):
-            stimulus_table.add_interval(start_time=start_times[t],stop_time=stop_times[t])
+            stimulus_table.add_interval(start_time=start_times[t], stop_time=stop_times[t])
 
         extra_columns = [key for key in self.visual_stim_dict.keys() if key not in ["vis_ids", "vis_times"]]
 
         for column_name in extra_columns:
             if isinstance(self.visual_stim_dict[column_name], (int, float, np.generic)):
                 # if it is define as scalar, copy the value for each trial
-                self.visual_stim_dict[column_name] = np.ones((len(self.visual_stim_dict["vis_times"][0])))*self.visual_stim_dict[column_name]
-            stimulus_table.add_column(name = column_name, description=column_name.replace("_"," "), data=self.visual_stim_dict[column_name])
- 
+                self.visual_stim_dict[column_name] = (
+                    np.ones((len(self.visual_stim_dict["vis_times"][0]))) * self.visual_stim_dict[column_name]
+                )
+            description = match_field_description(column_name)
+            stimulus_table.add_column(
+                name=column_name,
+                description=description or column_name.replace("_", " "),
+                data=self.visual_stim_dict[column_name],
+            )
+
         nwbfile.add_time_intervals(stimulus_table)

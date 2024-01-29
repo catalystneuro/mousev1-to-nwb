@@ -4,6 +4,8 @@ from neuroconv.utils import FolderPathType, FilePathType, DeepDict
 from typing import Optional
 from abdeladim_2023imaginginterface import Abdeladim2023SinglePlaneImagingInterface
 from abdeladim_2023segmentationinterface import Abdeladim2023SegmentationInterface
+from abdeladim_2023holostiminterface import Abdeladim2023HolographicStimulationInterface
+
 from abdeladim_2023visualstimulusinterface import Abdeladim2023VisualStimuliInterface
 
 
@@ -65,6 +67,8 @@ class Abdeladim2023NWBConverter(NWBConverter):
         segmentation_to_imaging_map: dict = None,
         segmentation_start_frame: int = 0,
         segmentation_end_frame: int = 100,
+        holographic_stimulation_file_path: Optional[FilePathType] = None,
+        epoch_name: Optional[str] = None,
         visual_stimulus_file_path: Optional[FilePathType] = None,
         visual_stimulus_type: Optional[str] = None,
         verbose: bool = True,
@@ -138,7 +142,22 @@ class Abdeladim2023NWBConverter(NWBConverter):
                     )
                 }
             )
-
+        if holographic_stimulation_file_path:
+            holographic_stimulation_interface_name = "HolographicStimulation"
+            holographic_stimulation_source_data = dict(
+                folder_path=imaging_folder_path,
+                holographic_stimulation_file_path=holographic_stimulation_file_path,
+                epoch_name=epoch_name,
+                verbose=verbose,
+            )
+            Abdeladim2023HolographicStimulationInterface(**holographic_stimulation_source_data)
+            self.data_interface_objects.update(
+                {
+                    holographic_stimulation_interface_name: Abdeladim2023HolographicStimulationInterface(
+                        **holographic_stimulation_source_data
+                    )
+                }
+            )
     def get_metadata(self) -> DeepDict:
         metadata = super().get_metadata()
         for interface_name in self.data_interface_objects.keys():

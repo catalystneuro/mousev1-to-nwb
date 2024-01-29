@@ -1,6 +1,7 @@
 """Primary script to run to convert an entire session for of data using the NWBConverter."""
 from pathlib import Path
 from typing import Union,Optional
+import h5py
 from zoneinfo import ZoneInfo
 import numpy as np
 
@@ -34,6 +35,11 @@ def session_to_nwb(
     segmentation_to_imaging_plane_map = get_default_segmentation_to_imaging_name_mapping(
         imaging_folder_path, segmentation_folder_path
     )
+    # Check if session has holographic photostimulation data
+    holographic_stimulation_file_path = data_dir_path / "example_data_rev20242501.hdf5"
+    holographic_stimulation_data = h5py.File(holographic_stimulation_file_path, "r")
+    if epoch_name not in holographic_stimulation_data.keys():
+        holographic_stimulation_file_path = None
 
     converter = Abdeladim2023NWBConverter(
         imaging_folder_path=imaging_folder_path,
@@ -43,6 +49,8 @@ def session_to_nwb(
         segmentation_end_frame=segmentation_end_frame,
         visual_stimulus_file_path=visual_stimulus_file_path,
         visual_stimulus_type=visual_stimulus_type,
+        holographic_stimulation_file_path=holographic_stimulation_file_path,
+        epoch_name=epoch_name,
         verbose=False,
     )
 
@@ -63,6 +71,12 @@ def session_to_nwb(
     editable_metadata = load_dict_from_file(editable_metadata_path)
     metadata = dict_deep_update(metadata, editable_metadata)
 
+    # Update metadata with the holographic stimulation data
+    if "HolographicStimulation" in converter.data_interface_objects:
+        holographic_stimulation_metadata_path = Path(__file__).parent / "abdeladim_2023_holostim_metadata.yaml"
+        holographic_metadata = load_dict_from_file(holographic_stimulation_metadata_path)
+        metadata = dict_deep_update(metadata, holographic_metadata)
+
     # Add the correct metadata for the session
     timezone = ZoneInfo("America/Los_Angeles")  # Time zone for Berkeley, California
     session_start_time = metadata["NWBFile"]["session_start_time"]
@@ -72,9 +86,7 @@ def session_to_nwb(
     # Each epoch will be saved in a different nwb file but they will have the same session_id.
     session_id = f"{session_start_time.year}{session_start_time.month}{session_start_time.day}_{subject_id}"
     metadata["NWBFile"].update(session_id=session_id)
-
     nwbfile_path = output_dir_path / f"{session_id}_{epoch_name}.nwb"
-
     # Run conversion
     converter.run_conversion(
         metadata=metadata, nwbfile_path=nwbfile_path, conversion_options=conversion_options, overwrite=True

@@ -15,3 +15,8 @@ Subject:
   sex: F
   weight: '0.025' # in the units of kg
   strain: C57BL/6J
+Ophys:
+  Device:
+    - name: CustomMicroscope
+      description: "The mesoscale read/write platform was custom-built around a 2P random-access fluorescence mesoscope previously described in detail (Sofroniew 2016)"
+      manufacturer: "Thorlabs Inc."

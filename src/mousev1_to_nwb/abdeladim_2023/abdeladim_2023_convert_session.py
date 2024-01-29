@@ -48,6 +48,7 @@ def session_to_nwb(
         holographic_stimulation_file_path=holographic_stimulation_file_path,
         epoch_name=epoch_name,
         verbose=False,
+        stub_test=stub_test,
     )
 
     conversion_options = {
@@ -96,7 +97,7 @@ if __name__ == "__main__":
     root_path = Path(f"/media/amtra/Samsung_T5/CN_data")
     data_dir_path = root_path / "MouseV1-to-nwb"
     output_dir_path = root_path / "MouseV1-conversion_nwb/"
-    stub_test = False  # for some reason does not work for iamging data
+    stub_test = True  # for some reason does not work for iamging data
 
     subject_id = "w57_1"  # "w51_1", "w57_1"
     epoch_name = "3ori"

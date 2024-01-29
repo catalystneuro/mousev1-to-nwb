@@ -68,6 +68,7 @@ class Abdeladim2023NWBConverter(NWBConverter):
         holographic_stimulation_file_path: Optional[FilePathType] = None,
         epoch_name: Optional[str] = None,
         verbose: bool = True,
+        stub_test: bool = False,
     ):
         self.verbose = verbose
         self.data_interface_objects = dict()
@@ -89,6 +90,7 @@ class Abdeladim2023NWBConverter(NWBConverter):
                     channel_name=channel_name,
                     plane_name=plane_name,
                     verbose=verbose,
+                    stub_test=stub_test,
                 )
                 self.data_interface_objects.update(
                     {imaging_interface_name: Abdeladim2023SinglePlaneImagingInterface(**imaging_source_data)}

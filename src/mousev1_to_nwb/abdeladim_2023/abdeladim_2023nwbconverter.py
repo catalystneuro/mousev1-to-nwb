@@ -5,9 +5,7 @@ from typing import Optional
 from abdeladim_2023imaginginterface import Abdeladim2023SinglePlaneImagingInterface
 from abdeladim_2023segmentationinterface import Abdeladim2023SegmentationInterface
 from abdeladim_2023holostiminterface import Abdeladim2023HolographicStimulationInterface
-
 from abdeladim_2023visualstimulusinterface import Abdeladim2023VisualStimuliInterface
-
 
 
 def get_default_segmentation_to_imaging_name_mapping(
@@ -72,7 +70,6 @@ class Abdeladim2023NWBConverter(NWBConverter):
         visual_stimulus_file_path: Optional[FilePathType] = None,
         visual_stimulus_type: Optional[str] = None,
         verbose: bool = True,
-        stub_test: bool = False,
     ):
         self.verbose = verbose
         self.data_interface_objects = dict()
@@ -94,7 +91,6 @@ class Abdeladim2023NWBConverter(NWBConverter):
                     channel_name=channel_name,
                     plane_name=plane_name,
                     verbose=verbose,
-                    stub_test=stub_test,
                 )
                 self.data_interface_objects.update(
                     {imaging_interface_name: Abdeladim2023SinglePlaneImagingInterface(**imaging_source_data)}

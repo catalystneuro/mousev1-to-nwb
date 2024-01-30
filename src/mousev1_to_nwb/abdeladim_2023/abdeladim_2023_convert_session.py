@@ -52,7 +52,6 @@ def session_to_nwb(
         holographic_stimulation_file_path=holographic_stimulation_file_path,
         epoch_name=epoch_name,
         verbose=False,
-        stub_test=stub_test,
     )
 
     conversion_options = {
@@ -102,7 +101,7 @@ if __name__ == "__main__":
     stub_test = True
 
     subject_id = "w57_1"  # "w51_1", "w57_1"
-    epoch_name = "4ori"
+    epoch_name = "5stim"
 
     epoch_names = ["2ret", "3ori", "4ori", "5stim", "6stim", "7expt"]
     try:
@@ -118,7 +117,7 @@ if __name__ == "__main__":
     segmentation_end_frame = segmentation_start_frame + frames_per_epoch[epoch_index]
 
     # if set to None it will assume that no visual stimuli are associated with the epoch
-    visual_stimulus_file_path = data_dir_path / "example_data_rev20242501.hdf5"
+    visual_stimulus_file_path = None #data_dir_path / "example_data_rev20242501.hdf5"
     visual_stimulus_type = "vis_orientation_tuning_example"
 
     session_to_nwb(

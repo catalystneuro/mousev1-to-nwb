@@ -37,7 +37,6 @@ class Abdeladim2023SinglePlaneImagingInterface(BaseImagingExtractorInterface):
         channel_name: str,
         plane_name: str,
         verbose: bool = True,
-        stub_test: bool = False,
     ):
         self.channel_name = channel_name
         self.plane_name = plane_name
@@ -47,8 +46,6 @@ class Abdeladim2023SinglePlaneImagingInterface(BaseImagingExtractorInterface):
         assert tif_file_paths, f"The TIF image files are missing from '{self.folder_path}'."
         self.image_metadata = extract_extra_metadata(file_path=tif_file_paths[0])
         super().__init__(folder_path=folder_path, channel_name=channel_name, plane_name=plane_name, verbose=verbose)
-        if stub_test:
-            self.imaging_extractor=self.imaging_extractor.frame_slice(start_frame=0, end_frame=100)
 
     def get_metadata(self) -> DeepDict:
         metadata = super().get_metadata()

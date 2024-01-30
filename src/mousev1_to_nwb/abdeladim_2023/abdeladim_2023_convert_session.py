@@ -1,6 +1,6 @@
 """Primary script to run to convert an entire session for of data using the NWBConverter."""
 from pathlib import Path
-from typing import Union
+from typing import Union,Optional
 import h5py
 from zoneinfo import ZoneInfo
 import numpy as np
@@ -18,6 +18,8 @@ def session_to_nwb(
     subject_id: str,
     segmentation_start_frame: int,
     segmentation_end_frame: int,
+    visual_stimulus_file_path: Optional[Union[str, Path]] = None,
+    visual_stimulus_type: Optional[str]= None,
     stub_test: bool = False,
 ):
     data_dir_path = Path(data_dir_path)
@@ -45,6 +47,8 @@ def session_to_nwb(
         segmentation_to_imaging_map=segmentation_to_imaging_plane_map,
         segmentation_start_frame=segmentation_start_frame,
         segmentation_end_frame=segmentation_end_frame,
+        visual_stimulus_file_path=visual_stimulus_file_path,
+        visual_stimulus_type=visual_stimulus_type,
         holographic_stimulation_file_path=holographic_stimulation_file_path,
         epoch_name=epoch_name,
         verbose=False,
@@ -83,9 +87,7 @@ def session_to_nwb(
     # Each epoch will be saved in a different nwb file but they will have the same session_id.
     session_id = f"{session_start_time.year}{session_start_time.month}{session_start_time.day}_{subject_id}"
     metadata["NWBFile"].update(session_id=session_id)
-
     nwbfile_path = output_dir_path / f"{session_id}_{epoch_name}.nwb"
-
     # Run conversion
     converter.run_conversion(
         metadata=metadata, nwbfile_path=nwbfile_path, conversion_options=conversion_options, overwrite=True
@@ -100,13 +102,13 @@ if __name__ == "__main__":
     stub_test = True
 
     subject_id = "w57_1"  # "w51_1", "w57_1"
-    epoch_name = "3ori"
+    epoch_name = "4ori"
 
     epoch_names = ["2ret", "3ori", "4ori", "5stim", "6stim", "7expt"]
     try:
-        epoch_index = epoch_names.index("3ori")
+        epoch_index = epoch_names.index(epoch_name)
     except ValueError:
-        print("'3ori' not found in the list of possible epoch_names.")
+        print(f"{epoch_name} not found in the list of possible epoch_names.")
 
     segmentation_folder_path = data_dir_path / "processed-suite2p-data/suite2p/plane0"
     file_npy_path = segmentation_folder_path / "ops.npy"
@@ -114,6 +116,10 @@ if __name__ == "__main__":
     frames_per_epoch = ops["frames_per_folder"]
     segmentation_start_frame = np.sum(frames_per_epoch[:epoch_index])
     segmentation_end_frame = segmentation_start_frame + frames_per_epoch[epoch_index]
+
+    # if set to None it will assume that no visual stimuli are associated with the epoch
+    visual_stimulus_file_path = data_dir_path / "example_data_rev20242501.hdf5"
+    visual_stimulus_type = "vis_orientation_tuning_example"
 
     session_to_nwb(
         data_dir_path=data_dir_path,
@@ -123,4 +129,6 @@ if __name__ == "__main__":
         stub_test=stub_test,
         segmentation_start_frame=segmentation_start_frame,
         segmentation_end_frame=segmentation_end_frame,
+        visual_stimulus_file_path=visual_stimulus_file_path,
+        visual_stimulus_type=visual_stimulus_type,
     )

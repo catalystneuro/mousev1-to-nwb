@@ -21,26 +21,6 @@ def h5py_to_dict(item):
     else:
         return None
 
-
-def match_field_description(field_name):
-    field_description = {
-        "orientation": "orientation of drifting grating in degrees (0-360)",
-        "size_vdeg": "size of stimulus in visual degrees, 1d of length n trials",
-        "contrast": "contrast of gratings, values between 0-1",
-        "location": "(X,Y) location on screen in visual degrees",
-        "vis_orientation_tuning_example": "Visual Orientation Tuning",
-        "vis_orientation_tuning": "Visual Orientation Tuning",  # TODO add a more descriptive text
-        "vis_retinotopy_example": "Retinotopy",
-        "vis_retinotopy": "Retinotopy",  # TODO add a more descriptive text
-        "vis_simple_example": "Simple Visual Stimuls",
-        "vis_simple": "Simple Visual Stimuls",  # TODO add a more descriptive text
-    }
-    if field_name in field_description.keys():
-        return field_description[field_name]
-    else:
-        return None
-
-
 class Abdeladim2023VisualStimuliInterface(BaseDataInterface):
     """
     Data Interface for writing visual stimuli data for the MouseV1 to NWB conversion
@@ -52,6 +32,7 @@ class Abdeladim2023VisualStimuliInterface(BaseDataInterface):
         folder_path: FolderPathType,
         visual_stimulus_file_path: FilePathType,
         visual_stimulus_type: str = None,
+        field_description_mapping: Optional[dict] = None,
         verbose: bool = True,
     ):
         """
@@ -84,6 +65,23 @@ class Abdeladim2023VisualStimuliInterface(BaseDataInterface):
         self.visual_stimulus_type = visual_stimulus_type
         for key, item in data.items():
             self.visual_stim_dict[key] = h5py_to_dict(item)
+        
+        if field_description_mapping is None:
+            self._field_description_mapping={
+                "orientation": "orientation of drifting grating in degrees (0-360)",
+                "size_vdeg": "size of stimulus in visual degrees, 1d of length n trials",
+                "contrast": "contrast of gratings, values between 0-1",
+                "location": "(X,Y) location on screen in visual degrees",
+                "vis_orientation_tuning_example": "Visual Orientation Tuning",
+                "vis_orientation_tuning": "Visual Orientation Tuning",  # TODO add a more descriptive text
+                "vis_retinotopy_example": "Retinotopy",
+                "vis_retinotopy": "Retinotopy",  # TODO add a more descriptive text
+                "vis_simple_example": "Simple Visual Stimuls",
+                "vis_simple": "Simple Visual Stimuls",  # TODO add a more descriptive text
+            }
+        else:
+            self._field_description_mapping=field_description_mapping
+
         super().__init__()
         self.verbose = verbose
 
@@ -93,9 +91,10 @@ class Abdeladim2023VisualStimuliInterface(BaseDataInterface):
         metadata: Optional[dict] = None,
         stub_test: bool = False,
     ) -> None:
+        description = self._field_description_mapping.get(self.visual_stimulus_type)
         stimulus_table = TimeIntervals(
             name="VisualStimuli",
-            description=match_field_description(self.visual_stimulus_type)
+            description=description
             or self.visual_stimulus_type.replace("_", " "),
         )
         start_times = self.trial_start_times + self.visual_stim_dict["vis_times"][0]
@@ -111,7 +110,7 @@ class Abdeladim2023VisualStimuliInterface(BaseDataInterface):
                 self.visual_stim_dict[column_name] = (
                     np.ones((len(self.visual_stim_dict["vis_times"][0]))) * self.visual_stim_dict[column_name]
                 )
-            description = match_field_description(column_name)
+            description = self._field_description_mapping.get(column_name)
             stimulus_table.add_column(
                 name=column_name,
                 description=description or column_name.replace("_", " "),

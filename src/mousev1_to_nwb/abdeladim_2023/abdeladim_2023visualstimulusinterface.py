@@ -68,9 +68,16 @@ class Abdeladim2023VisualStimuliInterface(BaseDataInterface):
             self.trial_start_times.append(timestamps[0])
 
         data = h5py.File(visual_stimulus_file_path, "r")
-        data = data[visual_stimulus_type]
+        if visual_stimulus_type not in data.keys() or visual_stimulus_type is None:
+            raise ValueError(
+                    f"'{visual_stimulus_type}' is not a valid visual_stimulus_type"
+                    f" it must be one of the following {list(data.keys())} as defined in {visual_stimulus_file_path}"
+                )
+        else: 
+            self.visual_stimulus_type = visual_stimulus_type
+
+        data = data[self.visual_stimulus_type]
         self.visual_stim_dict = dict()
-        self.visual_stimulus_type = visual_stimulus_type
         for key, item in data.items():
             self.visual_stim_dict[key] = h5py_to_dict(item)
 

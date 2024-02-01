@@ -28,6 +28,8 @@ def session_to_nwb(
         output_dir_path = output_dir_path / "nwb_stub"
     output_dir_path.mkdir(parents=True, exist_ok=True)
 
+    conversion_options=dict()
+
     # Add Imaging
     imaging_folder_path = data_dir_path / "raw-tiffs" / epoch_name
     # Add Segmentation
@@ -54,14 +56,13 @@ def session_to_nwb(
         verbose=False,
     )
 
-    conversion_options = {
-        interface_name: dict(stub_test=stub_test) for interface_name in converter.data_interface_objects.keys()
-    }
     photon_series_index = 0
     for interface_name in converter.data_interface_objects.keys():
         if "Imaging" in interface_name:
-            conversion_options[interface_name] = {"photon_series_index": photon_series_index}
+            conversion_options[interface_name] = {"stub_test": stub_test, "photon_series_index": photon_series_index}
             photon_series_index += 1
+        if "Segmentation" in interface_name:
+            conversion_options[interface_name] = {"stub_test": stub_test}
 
     # Add datetime to conversion
     metadata = converter.get_metadata()

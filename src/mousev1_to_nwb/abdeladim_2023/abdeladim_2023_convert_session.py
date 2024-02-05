@@ -28,6 +28,8 @@ def session_to_nwb(
         output_dir_path = output_dir_path / "nwb_stub"
     output_dir_path.mkdir(parents=True, exist_ok=True)
 
+    conversion_options=dict()
+
     # Add Imaging
     imaging_folder_path = data_dir_path / "raw-tiffs" / epoch_name
     # Add Segmentation
@@ -54,14 +56,13 @@ def session_to_nwb(
         verbose=False,
     )
 
-    conversion_options = {
-        interface_name: dict(stub_test=stub_test) for interface_name in converter.data_interface_objects.keys()
-    }
     photon_series_index = 0
     for interface_name in converter.data_interface_objects.keys():
         if "Imaging" in interface_name:
-            conversion_options[interface_name] = {"photon_series_index": photon_series_index}
+            conversion_options[interface_name] = {"stub_test": stub_test, "photon_series_index": photon_series_index}
             photon_series_index += 1
+        if "Segmentation" in interface_name:
+            conversion_options[interface_name] = {"stub_test": stub_test}
 
     # Add datetime to conversion
     metadata = converter.get_metadata()
@@ -98,10 +99,10 @@ if __name__ == "__main__":
     root_path = Path(f"/media/amtra/Samsung_T5/CN_data")
     data_dir_path = root_path / "MouseV1-to-nwb"
     output_dir_path = root_path / "MouseV1-conversion_nwb/"
-    stub_test = False  # for some reason does not work for iamging data
+    stub_test = True
 
     subject_id = "w57_1"  # "w51_1", "w57_1"
-    epoch_name = "4ori"
+    epoch_name = "5stim"
 
     epoch_names = ["2ret", "3ori", "4ori", "5stim", "6stim", "7expt"]
     try:
@@ -117,7 +118,7 @@ if __name__ == "__main__":
     segmentation_end_frame = segmentation_start_frame + frames_per_epoch[epoch_index]
 
     # if set to None it will assume that no visual stimuli are associated with the epoch
-    visual_stimulus_file_path = data_dir_path / "example_data_rev20242501.hdf5"
+    visual_stimulus_file_path = None #data_dir_path / "example_data_rev20242501.hdf5"
     visual_stimulus_type = "vis_orientation_tuning_example"
 
     session_to_nwb(

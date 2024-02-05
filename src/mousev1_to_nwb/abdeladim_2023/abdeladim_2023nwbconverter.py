@@ -5,9 +5,7 @@ from typing import Optional
 from abdeladim_2023imaginginterface import Abdeladim2023SinglePlaneImagingInterface
 from abdeladim_2023segmentationinterface import Abdeladim2023SegmentationInterface
 from abdeladim_2023holostiminterface import Abdeladim2023HolographicStimulationInterface
-
 from abdeladim_2023visualstimulusinterface import Abdeladim2023VisualStimuliInterface
-
 
 
 def get_default_segmentation_to_imaging_name_mapping(

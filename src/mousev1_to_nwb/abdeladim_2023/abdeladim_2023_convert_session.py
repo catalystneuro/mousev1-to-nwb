@@ -24,11 +24,6 @@ def session_to_nwb(
     visual_stimulus_epoch_name_mapping: Optional[dict] = None,
     stub_test: bool = False,
 ):
-    output_dir_path = Path(output_dir_path)
-    if stub_test:
-        output_dir_path = output_dir_path / "nwb_stub"
-    output_dir_path.mkdir(parents=True, exist_ok=True)
-
     conversion_options = dict()
 
     # Add Imaging
@@ -98,6 +93,13 @@ def session_to_nwb(
     # Each epoch will be saved in a different nwb file but they will have the same session_id.
     session_id = f"{session_start_time.year}{session_start_time.month}{session_start_time.day}_{subject_id}"
     metadata["NWBFile"].update(session_id=session_id)
+
+    output_dir_path = Path(output_dir_path)
+    if stub_test:
+        output_dir_path = output_dir_path / f"nwb_stub/{session_id}"
+    else:
+        output_dir_path = output_dir_path / f"{session_id}"
+    output_dir_path.mkdir(parents=True, exist_ok=True)
     nwbfile_path = output_dir_path / f"{session_id}_{epoch_name}.nwb"
     # Run conversion
     converter.run_conversion(

@@ -1,4 +1,5 @@
 """Primary script to run to convert an entire session for of data using the NWBConverter."""
+
 from pathlib import Path
 from typing import Union, Optional
 import h5py
@@ -18,10 +19,11 @@ def session_to_nwb(
     imaging_folder_path: Union[str, Path],
     segmentation_folder_path: Optional[Union[str, Path]] = None,
     visual_stimulus_file_path: Optional[Union[str, Path]] = None,
+    epoch_name_visual_stimulus_mapping: Optional[dict] = None,
     holographic_stimulation_file_path: Optional[Union[str, Path]] = None,
     segmentation_start_frame: Optional[int] = 0,
     segmentation_end_frame: Optional[int] = 100,
-    visual_stimulus_epoch_name_mapping: Optional[dict] = None,
+    epoch_name_description_mapping: Optional[dict] = None,
     stub_test: bool = False,
 ):
     conversion_options = dict()
@@ -43,11 +45,16 @@ def session_to_nwb(
             holographic_stimulation_file_path = None
 
     if visual_stimulus_file_path:
-        if epoch_name not in visual_stimulus_epoch_name_mapping.keys():
-            visual_stimulus_file_path = None
-            visual_stimulus_type = None
+        if epoch_name_visual_stimulus_mapping is None:
+            epoch_name_visual_stimulus_mapping = {
+                "2ret": "vis_retinotopy_example",
+                "3ori": "vis_simple_example",
+                "4ori": "vis_orientation_tuning_example",
+            }
+        if epoch_name in epoch_name_visual_stimulus_mapping.keys():
+            visual_stimulus_type = epoch_name_visual_stimulus_mapping[epoch_name]
         else:
-            visual_stimulus_type = visual_stimulus_epoch_name_mapping[epoch_name]
+            visual_stimulus_type = None
 
     converter = Abdeladim2023NWBConverter(
         imaging_folder_path=imaging_folder_path,
@@ -88,6 +95,7 @@ def session_to_nwb(
     timezone = ZoneInfo("America/Los_Angeles")  # Time zone for Berkeley, California
     session_start_time = metadata["NWBFile"]["session_start_time"]
     metadata["NWBFile"].update(session_start_time=session_start_time.replace(tzinfo=timezone))
+    metadata["NWBFile"].update(experiment_description=epoch_name_description_mapping.get(epoch_name))
     metadata["Subject"].update(subject_id=subject_id)
 
     # Each epoch will be saved in a different nwb file but they will have the same session_id.
@@ -116,14 +124,21 @@ if __name__ == "__main__":
 
     subject_id = "w57_1"
     epoch_names = ["2ret", "3ori", "4ori", "5stim", "6stim", "7expt"]
+    epoch_name_description_mapping = {  # TODO add more extensive experiment description
+        "2ret": "Retinotopy",
+        "3ori": "Simple visual stimulation",
+        "4ori": "Visual orientation tuning",
+        "5stim": "Holographic stimulation of single cells and ensembles of co-tuned cells in primary visual cortex.",
+        "6stim": "",
+        "7expt": "Holographic stimulation of single cells and ensembles of co-tuned cells in primary visual cortex.",
+    }
 
     segmentation_folder_path = data_dir_path / "processed-suite2p-data/suite2p"
 
     holographic_stimulation_file_path = data_dir_path / "example_data_rev20242501.hdf5"
 
     visual_stimulus_file_path = data_dir_path / "example_data_rev20242501.hdf5"
-
-    visual_stimulus_epoch_name_mapping = {
+    epoch_name_visual_stimulus_mapping = {
         "2ret": "vis_retinotopy_example",
         "3ori": "vis_simple_example",
         "4ori": "vis_orientation_tuning_example",
@@ -147,9 +162,10 @@ if __name__ == "__main__":
             imaging_folder_path=imaging_folder_path,
             segmentation_folder_path=segmentation_folder_path,
             visual_stimulus_file_path=visual_stimulus_file_path,
+            epoch_name_visual_stimulus_mapping=epoch_name_visual_stimulus_mapping,
             holographic_stimulation_file_path=holographic_stimulation_file_path,
             segmentation_start_frame=segmentation_start_frame,
             segmentation_end_frame=segmentation_end_frame,
-            visual_stimulus_epoch_name_mapping=visual_stimulus_epoch_name_mapping,
+            epoch_name_description_mapping=epoch_name_description_mapping,
             stub_test=stub_test,
         )

@@ -91,8 +91,8 @@ class Abdeladim2023VisualStimuliInterface(BaseDataInterface):
                 "vis_orientation_tuning": "Visual Orientation Tuning",  # TODO add a more descriptive text
                 "vis_retinotopy_example": "Retinotopy",
                 "vis_retinotopy": "Retinotopy",  # TODO add a more descriptive text
-                "vis_simple_example": "Simple Visual Stimuls",
-                "vis_simple": "Simple Visual Stimuls",  # TODO add a more descriptive text
+                "vis_simple_example": "Simple Visual Stimulus",
+                "vis_simple": "Simple Visual Stimulus",  # TODO add a more descriptive text
             }
         else:
             self._field_description_mapping = field_description_mapping

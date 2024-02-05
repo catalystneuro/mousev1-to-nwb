@@ -17,10 +17,10 @@ Ophys:
       exposure_time_in_s: 0.005 #s
   OptogeneticStimulusSite:
     - name: OptogeneticStimulusSite
-      description: The targeted location of the holographic stimulation.
+      description: The targeted location of the holographic stimulation is Primary visual cortex (V1), 140-200 um below pia
       excitation_lambda: 1040.0 # nm
       effector: ChroME2s 
-      location: Primary visual cortex (V1), 140-200 um below pia
+      location: VISp
 
 LabMetaData:
   TemporalFocusing:

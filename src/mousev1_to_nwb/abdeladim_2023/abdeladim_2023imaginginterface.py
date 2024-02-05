@@ -91,21 +91,22 @@ class Abdeladim2023SinglePlaneImagingInterface(BaseImagingExtractorInterface):
 
         indicator = {"Channel1": "GCaMP6f", "Channel2": "mRuby"}[channel_name_without_space]
 
-        location = {
-            "0": "Primary visual cortex (V1), 200 um below pia",
-            "1": "Primary visual cortex (V1), 170 um below pia",
-            "2": "Primary visual cortex (V1), 140 um below pia",
+        description = {
+            "0": "The imaging plane specific location is Primary visual cortex (V1), 200 um below pia",
+            "1": "The imaging plane specific location is Primary visual cortex (V1), 170 um below pia",
+            "2": "The imaging plane specific location is Primary visual cortex (V1), 140 um below pia",
         }[self.plane_name]
 
         imaging_plane_metadata = metadata["Ophys"]["ImagingPlane"][0]
         imaging_plane_metadata.update(
             name=imaging_plane_name,
+            description=description,
             optical_channel=[optical_channel_metadata],
             device=device_name,
             excitation_lambda=920.0,
             indicator=indicator,
             imaging_rate=float(self.image_metadata["SI.hRoiManager.scanVolumeRate"]),
-            location=location,
+            location="VISp",
         )
 
         two_photon_series_metadata = metadata["Ophys"]["TwoPhotonSeries"][0]

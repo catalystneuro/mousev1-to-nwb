@@ -112,7 +112,6 @@ class Abdeladim2023HolographicStimulationInterface(BaseDataInterface):
         self._scanimage_hologram_list = data["scanimage_hologram_list"][:]
         self._scanimage_target_coordinates = data["scanimage_targets"][:]
         self._trial_to_stimulation_ids_map = data["stim_id"][:]
-        # self._power_per_trial = data["power_per_cell"][:]
         self._frequency_per_trial = data["hz_per_cell"][:]
         self._n_spike_per_trial = data["spikes_per_cell"][:]
         self._stimulus_time_per_targeted_rois = data["stim_times"][:]
@@ -166,7 +165,7 @@ class Abdeladim2023HolographicStimulationInterface(BaseDataInterface):
 
         # Add SLM device to NWBFile
         spatial_light_modulator_metadata = metadata_copy["Ophys"]["OptogeneticDevice"]["SpatialLightModulator2D"]
-        spatial_light_modulator_metadata.update(spatial_resolution=[1024, 1024])
+        spatial_light_modulator_metadata.update(spatial_resolution_in_px=[1024, 1024])
         spatial_light_modulator_name = spatial_light_modulator_metadata["name"]
         if spatial_light_modulator_name not in nwbfile.devices:
             nwbfile.add_device(SpatialLightModulator2D(**spatial_light_modulator_metadata))
@@ -317,7 +316,7 @@ class Abdeladim2023HolographicStimulationInterface(BaseDataInterface):
                             stimulus_table.add_interval(
                                 start_time=start_time[i],
                                 stop_time=stop_time[i],
-                                power=power,
+                                power_per_roi=power,
                                 frequency=frequency,
                                 stimulus_pattern=temporal_focusing,
                                 targets=nwbfile.lab_meta_data[hologram_name],

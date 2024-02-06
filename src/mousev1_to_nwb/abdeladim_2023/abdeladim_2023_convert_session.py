@@ -44,6 +44,7 @@ def session_to_nwb(
         if epoch_name not in holographic_stimulation_data.keys():
             holographic_stimulation_file_path = None
 
+    visual_stimulus_type = None
     if visual_stimulus_file_path:
         if epoch_name_visual_stimulus_mapping is None:
             epoch_name_visual_stimulus_mapping = {
@@ -53,8 +54,6 @@ def session_to_nwb(
             }
         if epoch_name in epoch_name_visual_stimulus_mapping.keys():
             visual_stimulus_type = epoch_name_visual_stimulus_mapping[epoch_name]
-        else:
-            visual_stimulus_type = None
 
     converter = Abdeladim2023NWBConverter(
         imaging_folder_path=imaging_folder_path,

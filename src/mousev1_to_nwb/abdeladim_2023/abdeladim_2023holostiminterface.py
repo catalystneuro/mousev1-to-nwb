@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Optional
 
 import numpy as np
+import pandas as pd
 import h5py
 from neuroconv import BaseDataInterface
 from neuroconv.tools.roiextractors.roiextractors import get_default_segmentation_metadata
@@ -252,9 +253,9 @@ class Abdeladim2023HolographicStimulationInterface(BaseDataInterface):
         targeted_to_glob_ids[np.isnan(self._targeted_to_segmented_roi_ids_map)] = np.arange(
             len(segmented_to_glob_ids), len(segmented_to_glob_ids) + len(targeted_not_stimulated_rois)
         )
-        targeted_to_glob_ids[
-            ~np.isnan(self._targeted_to_segmented_roi_ids_map)
-        ] = self._targeted_to_segmented_roi_ids_map[~np.isnan(self._targeted_to_segmented_roi_ids_map)]
+        targeted_to_glob_ids[~np.isnan(self._targeted_to_segmented_roi_ids_map)] = (
+            self._targeted_to_segmented_roi_ids_map[~np.isnan(self._targeted_to_segmented_roi_ids_map)]
+        )
 
         targeted_plane_segmentation.add_column(
             name="global_ids",
@@ -267,6 +268,16 @@ class Abdeladim2023HolographicStimulationInterface(BaseDataInterface):
         stimulus_table = PatternedOptogeneticStimulusTable(
             name="PatternedOptogeneticStimulusTable", description="Patterned stimulus"
         )
+        colnames = [
+            "start_time",
+            "stop_time",
+            "power_per_roi",
+            "frequency",
+            "stimulus_pattern",
+            "targets",
+            "stimulus_site",
+        ]
+        rows = []
         for trial, hologram_index in enumerate(self._trial_to_stimulation_ids_map):
             # 7expt has incomplete data
             if trial >= self._total_number_of_trials:
@@ -304,26 +315,40 @@ class Abdeladim2023HolographicStimulationInterface(BaseDataInterface):
                     stimulus_time = self._stimulus_time_per_targeted_rois[targeted_roi_indexes]
                     start_time = trial_start_time + stimulus_time
                     stop_time = start_time + np.round(n_spike / frequency, decimals=2)
-                    # Since each roi in the Hologram receive the stimuli at different times and different power, 
-                    # here we add one interval for each stimulus time and indicate which roi has been stimulated 
-                    # by setting power as an 1D array where the only non-zero element would be 
+                    # Since each roi in the Hologram receive the stimuli at different times and different power,
+                    # here we add one interval for each stimulus time and indicate which roi has been stimulated
+                    # by setting power as an 1D array where the only non-zero element would be
                     # the one reffered to the roi stimulated in the current stimulus onset.
                     # NB: if "power" is defined as array it must have the same lenght as "targeted_rois"
                     for i in range(len(targeted_roi_indexes)):
                         if ~np.isnan(start_time[i]) and ~np.isnan(stimulus_power[i]):
                             power = np.zeros((len(targeted_roi_indexes)))
                             power[i] = stimulus_power[i]
-                            stimulus_table.add_interval(
-                                start_time=start_time[i],
-                                stop_time=stop_time[i],
-                                power_per_roi=power,
-                                frequency=frequency,
-                                stimulus_pattern=temporal_focusing,
-                                targets=nwbfile.lab_meta_data[hologram_name],
-                                stimulus_site=stim_site,
-                            )
-        if len(stimulus_table["start_time"]) == 0:
+                            row = [
+                                start_time[i],
+                                stop_time[i],
+                                power,
+                                frequency,
+                                temporal_focusing,
+                                nwbfile.lab_meta_data[hologram_name],
+                                stim_site,
+                            ]
+                            rows.append(row)
+                            # stimulus_table.add_interval(
+                            #     start_time=start_time[i],
+                            #     stop_time=stop_time[i],
+                            #     power_per_roi=power,
+                            #     frequency=frequency,
+                            #     stimulus_pattern=temporal_focusing,
+                            #     targets=nwbfile.lab_meta_data[hologram_name],
+                            #     stimulus_site=stim_site,
+                            # )
+        stimulus_df = pd.DataFrame(rows,columns=colnames)
+        if len(stimulus_df["start_time"]) == 0:
             print(f"No stimulus onset has been found in {self.epoch_name}")
             print("No PatternedOptogeneticStimulusTable will be created")
         else:
+            stimulus_df = stimulus_df.sort_values(by="start_time")
+            for i, row in stimulus_df.iterrows():
+                stimulus_table.add_row(row.to_dict())
             nwbfile.add_time_intervals(stimulus_table)

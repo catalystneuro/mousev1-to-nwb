@@ -10,21 +10,21 @@ Ophys:
       description: Laser for optogenetic stimulation.
       manufacturer: Coherent, Inc.
       model: Monaco 40 W
-      stimulation_wavelength: 1040.0 # nm
-      intensity: 20 # uJ
-      peak_power: 40 # W
-      pulse_rate: 2000000 #Hz
-      exposure_time: 0.005 #s
+      stimulation_wavelength_in_nm: 1040.0 # nm
+      peak_pulse_energy_in_J: 0.00002 # J
+      peak_power_in_W: 40 # W
+      pulse_rate_in_Hz: 2000000 #Hz
+      exposure_time_in_s: 0.005 #s
   OptogeneticStimulusSite:
     - name: OptogeneticStimulusSite
-      description: The targeted location of the holographic stimulation.
+      description: The targeted location of the holographic stimulation is Primary visual cortex (V1), 140-200 um below pia
       excitation_lambda: 1040.0 # nm
       effector: ChroME2s 
-      location: Primary visual cortex (V1), 140-200 um below pia
+      location: VISp
 
 LabMetaData:
   TemporalFocusing:
     name: TemporalFocusing
     description: The temporal focusing pattern applied to the optogenetic stimulation.
-    lateral_point_spread_function: 14 um ± 0.1 um
-    axial_point_spread_function: 10 um ± 0.1 um
+    lateral_point_spread_function_in_um: 14 um ± 0.1 um
+    axial_point_spread_function_in_um: 10 um ± 0.1 um

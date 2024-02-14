@@ -116,7 +116,7 @@ class Abdeladim2023HolographicStimulationInterface(BaseDataInterface):
         self._frequency_per_trial = data["hz_per_cell"][:]
         self._n_spike_per_trial = data["spikes_per_cell"][:]
         self._stimulus_time_per_targeted_rois = data["stim_times"][:]
-        self._stimulus_power_per_targeted_rois = data["roi_powers_mW"][:]
+        self._stimulus_power_per_targeted_rois = data["roi_powers_mW"][:]*1e-3# conversion from mW to W
 
         self.epoch_name = epoch_name
         super().__init__(folder_path=folder_path)
@@ -276,6 +276,7 @@ class Abdeladim2023HolographicStimulationInterface(BaseDataInterface):
             "stimulus_pattern",
             "targets",
             "stimulus_site",
+            "tags"
         ]
         rows = []
         for trial, hologram_index in enumerate(self._trial_to_stimulation_ids_map):
@@ -311,13 +312,13 @@ class Abdeladim2023HolographicStimulationInterface(BaseDataInterface):
                     trial_start_time = self.trial_start_times[trial]
                     frequency = self._frequency_per_trial[trial]
                     n_spike = self._n_spike_per_trial[trial]
-                    stimulus_power = self._stimulus_power_per_targeted_rois[targeted_roi_indexes]
+                    stimulus_power = self._stimulus_power_per_targeted_rois[targeted_roi_indexes] 
                     stimulus_time = self._stimulus_time_per_targeted_rois[targeted_roi_indexes]
                     start_time = trial_start_time + stimulus_time
                     stop_time = start_time + np.round(n_spike / frequency, decimals=2)
                     # Since each roi in the Hologram receive the stimuli at different times and different power,
                     # here we add one interval for each stimulus time and indicate which roi has been stimulated
-                    # by setting power as an 1D array where the only non-zero element would be
+                    # by setting power as an 1D array where the only non-zero element is
                     # the one reffered to the roi stimulated in the current stimulus onset.
                     # NB: if "power" is defined as array it must have the same lenght as "targeted_rois"
                     for i in range(len(targeted_roi_indexes)):
@@ -332,17 +333,9 @@ class Abdeladim2023HolographicStimulationInterface(BaseDataInterface):
                                 temporal_focusing,
                                 nwbfile.lab_meta_data[hologram_name],
                                 stim_site,
+                                trial,
                             ]
                             rows.append(row)
-                            # stimulus_table.add_interval(
-                            #     start_time=start_time[i],
-                            #     stop_time=stop_time[i],
-                            #     power_per_roi=power,
-                            #     frequency=frequency,
-                            #     stimulus_pattern=temporal_focusing,
-                            #     targets=nwbfile.lab_meta_data[hologram_name],
-                            #     stimulus_site=stim_site,
-                            # )
         stimulus_df = pd.DataFrame(rows,columns=colnames)
         if len(stimulus_df["start_time"]) == 0:
             print(f"No stimulus onset has been found in {self.epoch_name}")

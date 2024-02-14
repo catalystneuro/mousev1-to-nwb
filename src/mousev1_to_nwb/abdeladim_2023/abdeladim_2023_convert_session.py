@@ -95,10 +95,11 @@ def session_to_nwb(
     session_start_time = metadata["NWBFile"]["session_start_time"]
     metadata["NWBFile"].update(session_start_time=session_start_time.replace(tzinfo=timezone))
     metadata["NWBFile"].update(experiment_description=epoch_name_description_mapping.get(epoch_name))
+    subject_id = subject_id.replace("_","-")
     metadata["Subject"].update(subject_id=subject_id)
 
     # Each epoch will be saved in a different nwb file but they will have the same session_id.
-    session_id = f"{session_start_time.year}{session_start_time.month}{session_start_time.day}_{subject_id}"
+    session_id = f"{subject_id}-{session_start_time.year}{session_start_time.month}{session_start_time.day}"
     metadata["NWBFile"].update(session_id=session_id)
 
     output_dir_path = Path(output_dir_path)
@@ -107,7 +108,7 @@ def session_to_nwb(
     else:
         output_dir_path = output_dir_path / f"{session_id}"
     output_dir_path.mkdir(parents=True, exist_ok=True)
-    nwbfile_path = output_dir_path / f"{session_id}_{epoch_name}.nwb"
+    nwbfile_path = output_dir_path / f"{session_id}-{epoch_name}.nwb"
     # Run conversion
     converter.run_conversion(
         metadata=metadata, nwbfile_path=nwbfile_path, conversion_options=conversion_options, overwrite=True
@@ -116,7 +117,7 @@ def session_to_nwb(
 
 if __name__ == "__main__":
     # Parameters for conversion
-    root_path = Path(f"/media/amtra/Samsung_T5/CN_data")
+    root_path = Path("/media/amtra/Samsung_T5/CN_data")
     data_dir_path = root_path / "MouseV1-to-nwb"
     output_dir_path = root_path / "MouseV1-conversion_nwb/"
     stub_test = True

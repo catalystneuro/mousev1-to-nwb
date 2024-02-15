@@ -1,7 +1,6 @@
 NWBFile:
   keywords: [2-photon, calcium imaging, photostimulation, optogenetics, temporal focusing, patterned optogenetics, visual cortex, mouse]
   session_description: Headfixed 2-photon calcium imaging and photostimulation of visual cortex.
-  experiment_description: Holographic stimulation of single cells and ensembles of co-tuned cells in primary visual cortex.
   institution: UC Berkeley
   lab: Adesnik
   experimenter:

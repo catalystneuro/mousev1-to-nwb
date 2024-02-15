@@ -333,7 +333,7 @@ class Abdeladim2023HolographicStimulationInterface(BaseDataInterface):
                                 temporal_focusing,
                                 nwbfile.lab_meta_data[hologram_name],
                                 stim_site,
-                                trial,
+                                [f"trial {trial}"],
                             ]
                             rows.append(row)
         stimulus_df = pd.DataFrame(rows,columns=colnames)

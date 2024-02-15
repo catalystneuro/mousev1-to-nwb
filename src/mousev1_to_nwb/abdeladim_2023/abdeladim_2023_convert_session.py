@@ -123,7 +123,7 @@ if __name__ == "__main__":
     stub_test = True
 
     subject_id = "w57_1"
-    epoch_names = ["5stim"]#["2ret", "3ori", "4ori", "5stim", "6stim", "7expt"]
+    epoch_names = ["2ret", "3ori", "4ori", "5stim", "6stim", "7expt"]
     epoch_name_description_mapping = {  # TODO add more extensive experiment description
         "2ret": "Retinotopy",
         "3ori": "Simple visual stimulation",

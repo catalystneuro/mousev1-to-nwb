@@ -12,7 +12,7 @@ Ophys:
       model: Monaco 40 W
       stimulation_wavelength_in_nm: 1040.0 # nm
       peak_pulse_energy_in_J: 0.00002 # J
-      peak_power_in_W: 40 # W
+      peak_power_in_W: 0.040 # W
       pulse_rate_in_Hz: 2000000 #Hz
       exposure_time_in_s: 0.005 #s
   OptogeneticStimulusSite:

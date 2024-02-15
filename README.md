@@ -2,7 +2,6 @@
 NWB conversion scripts for MouseV1 lab data to the [Neurodata Without Borders](https://nwb-overview.readthedocs.io/) data format.
 
 
-## Installation
 ## Basic installation
 
 You can install the latest release of the package with pip:
@@ -71,13 +70,18 @@ Each conversion is organized in a directory of its own in the `src` directory:
         ├── mousev1_to_nwb
         │   ├── conversion_directory_1
         │   └── abdeladim_2023
-        │       ├── abdeladim_2023behaviorinterface.py
+        │       ├── abdeladim_2023imagingextractor.py
+        │       ├── abdeladim_2023imaginginterface.py
+        │       ├── abdeladim_2023segmentationinterface.py
+        │       ├── abdeladim_2023holostiminterface.py
+        │       ├── abdeladim_2023visualstimulusinterface.py
+        │       ├── abdeladim_2023nwbconverter.py
         │       ├── abdeladim_2023_convert_session.py
         │       ├── abdeladim_2023_metadata.yml
-        │       ├── abdeladim_2023nwbconverter.py
+        │       ├── abdeladim_2023_holostim_metadata.yml
         │       ├── abdeladim_2023_requirements.txt
         │       ├── abdeladim_2023_notes.md
-
+        │       ├── abdeladim_2023_conversion_script.py
         │       └── __init__.py
         │   ├── conversion_directory_b
 
@@ -85,11 +89,16 @@ Each conversion is organized in a directory of its own in the `src` directory:
 
  For example, for the conversion `abdeladim_2023` you can find a directory located in `src/mousev1-to-nwb/abdeladim_2023`. Inside each conversion directory you can find the following files:
 
+* `abdeladim_2023_conversion_script.py`: this script run the conversion of one full session (all epochs). Data directories, output directory, subject id and other information to run the conversion should be defined here.
 * `abdeladim_2023_convert_sesion.py`: this script defines the function to convert one full session of the conversion.
 * `abdeladim_2023_requirements.txt`: dependencies specific to this conversion.
 * `abdeladim_2023_metadata.yml`: metadata in yaml format for this specific conversion.
-* `abdeladim_2023behaviorinterface.py`: the behavior interface. Usually ad-hoc for each conversion.
+* `abdeladim_2023imagingextractor.py`: the extractor for the imaging data.
+* `abdeladim_2023imaginginterface.py`: the interface for the imaging data.
+* `abdeladim_2023segmentationinterface.py`: the interface for the segmentation data.
+* `abdeladim_2023_holostim_metadata.yml`: metadata in yaml format for holographic stimulus specs.
+* `abdeladim_2023holostiminterface.py`: the interface for the holographic stimulus data.
+* `abdeladim_2023visualstimulusinterface.py`: the interface for the visual stimulus data.
 * `abdeladim_2023nwbconverter.py`: the place where the `NWBConverter` class is defined.
 * `abdeladim_2023_notes.md`: notes and comments concerning this specific conversion.
 
-The directory might contain other files that are necessary for the conversion but those are the central ones.

@@ -1,25 +1,26 @@
 from dateutil.parser import parse as dateparse
-from dateutil import tz
 import datetime
-import json
 from pathlib import Path
 from natsort import natsorted
-from abdeladim_2023imagingextractor import Abdeladim2023SinglePlaneImagingExtractor
+
 from neuroconv.datainterfaces.ophys.baseimagingextractorinterface import BaseImagingExtractorInterface
 from neuroconv.utils import FolderPathType
 from neuroconv.utils.dict import DeepDict
+
 from roiextractors.extractors.tiffimagingextractors.scanimagetiff_utils import extract_extra_metadata
 from roiextractors.extractors.tiffimagingextractors.scanimagetiffimagingextractor import (
     ScanImageTiffSinglePlaneImagingExtractor,
 )
 
+from hendricks_2024_imagingextractor import Hendricks2024SinglePlaneImagingExtractor
 
-class Abdeladim2023SinglePlaneImagingInterface(BaseImagingExtractorInterface):
+
+class Hendricks2024SinglePlaneImagingInterface(BaseImagingExtractorInterface):
     """
-    Data Interface for writing imaging data for the MouseV1 to NWB file using Abdeladim2023SinglePlaneImagingExtractor.
+    Data Interface for writing imaging data for the MouseV1 to NWB file using Hendricks2024SinglePlaneImagingExtractor.
     """
 
-    Extractor = Abdeladim2023SinglePlaneImagingExtractor
+    Extractor = Hendricks2024SinglePlaneImagingExtractor
 
     @classmethod
     def get_available_channels(cls, folder_path):
@@ -92,9 +93,9 @@ class Abdeladim2023SinglePlaneImagingInterface(BaseImagingExtractorInterface):
         indicator = {"Channel1": "GCaMP6f", "Channel2": "mRuby"}[channel_name_without_space]
 
         description = {
-            "0": "The imaging plane specific location is Primary visual cortex (V1), 200 um below pia",
-            "1": "The imaging plane specific location is Primary visual cortex (V1), 170 um below pia",
-            "2": "The imaging plane specific location is Primary visual cortex (V1), 140 um below pia",
+            "0": "The imaging plane for the Primary visual cortex (V1), 200 um below pia",
+            "1": "The imaging plane for the Primary visual cortex (V1), 170 um below pia",
+            "2": "The imaging plane for the Primary visual cortex (V1), 140 um below pia",
         }[self.plane_name]
 
         imaging_plane_metadata = metadata["Ophys"]["ImagingPlane"][0]

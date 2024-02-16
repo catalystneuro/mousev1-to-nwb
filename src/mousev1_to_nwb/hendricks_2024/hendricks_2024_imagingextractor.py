@@ -1,21 +1,20 @@
-from typing import Optional, Tuple, List, Iterable
+from typing import Optional
 from pathlib import Path
 from natsort import natsorted
+
+from neuroconv.utils import FolderPathType
+
 from roiextractors.extractors.tiffimagingextractors.scanimagetiffimagingextractor import (
     ScanImageTiffMultiPlaneImagingExtractor,
     ScanImageTiffSinglePlaneImagingExtractor,
 )
 from roiextractors.multiimagingextractor import MultiImagingExtractor
-from neuroconv.utils import FolderPathType
-from roiextractors.extraction_tools import PathType, FloatType, ArrayType, DtypeType, get_package
-import numpy as np
-from natsort import natsorted
 
 
-class Abdeladim2023MultiPlaneImagingExtractor(MultiImagingExtractor):
-    """Specialized extractor for Abdeladim2023 conversion project: reading ScanImage .tif files chunked over time"""
+class Hendricks2024MultiPlaneImagingExtractor(MultiImagingExtractor):
+    """Specialized extractor for Hendricks2024 conversion project: reading ScanImage .tif files chunked over time"""
 
-    extractor_name = "Abdeladim2023MultiPlaneImagingExtractor"
+    extractor_name = "Hendricks2024MultiPlaneImagingExtractor"
     is_writable = True
     mode = "folder"
 
@@ -36,10 +35,10 @@ class Abdeladim2023MultiPlaneImagingExtractor(MultiImagingExtractor):
         super().__init__(imaging_extractors=imaging_extractors)
 
 
-class Abdeladim2023SinglePlaneImagingExtractor(MultiImagingExtractor):
-    """Specialized extractor for Abdeladim2023 conversion project: reading ScanImage .tif files chunked over time"""
+class Hendricks2024SinglePlaneImagingExtractor(MultiImagingExtractor):
+    """Specialized extractor for Hendricks2024 conversion project: reading ScanImage .tif files chunked over time"""
 
-    extractor_name = "Abdeladim2023SinglePlaneImagingExtractor"
+    extractor_name = "Hendricks2024SinglePlaneImagingExtractor"
     is_writable = True
     mode = "folder"
 
@@ -61,4 +60,3 @@ class Abdeladim2023SinglePlaneImagingExtractor(MultiImagingExtractor):
         ]
 
         super().__init__(imaging_extractors=imaging_extractors)
-

@@ -1,6 +1,6 @@
 from pathlib import Path
 import numpy as np
-from abdeladim_2023_convert_session import session_to_nwb
+from hendricks_2024_convert_session import session_to_nwb
 
 # Specify the data directory and the output directory for the nwb files
 root_path = Path("/media/amtra/Samsung_T5/CN_data")
@@ -10,7 +10,7 @@ output_dir_path = root_path / "MouseV1-conversion_nwb/"
 imaging_folder_path = data_dir_path / "raw-tiffs"
 segmentation_folder_path = data_dir_path / "processed-suite2p-data/suite2p"
 holographic_stimulation_file_path = data_dir_path / "example_data_rev20242501.hdf5"
-visual_stimulus_file_path = data_dir_path / "example_data_rev20242501.hdf5"
+visual_stimulus_file_path = None #data_dir_path / "example_data_rev20242501.hdf5"
 
 # To test the conversion pipeline on a smaller portion of the dataset: stub_test = True
 stub_test = False

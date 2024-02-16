@@ -8,8 +8,7 @@ import numpy as np
 
 from neuroconv.utils import load_dict_from_file, dict_deep_update
 
-from abdeladim_2023nwbconverter import Abdeladim2023NWBConverter
-from abdeladim_2023nwbconverter import get_default_segmentation_to_imaging_name_mapping
+from hendricks_2024_nwbconverter import Hendricks2024NWBConverter, get_default_segmentation_to_imaging_name_mapping
 
 
 def session_to_nwb(
@@ -55,7 +54,7 @@ def session_to_nwb(
         if epoch_name in epoch_name_visual_stimulus_mapping.keys():
             visual_stimulus_type = epoch_name_visual_stimulus_mapping[epoch_name]
 
-    converter = Abdeladim2023NWBConverter(
+    converter = Hendricks2024NWBConverter(
         imaging_folder_path=imaging_folder_path,
         segmentation_folder_path=segmentation_folder_path,
         segmentation_to_imaging_map=segmentation_to_imaging_plane_map,
@@ -80,13 +79,13 @@ def session_to_nwb(
     metadata = converter.get_metadata()
 
     # Update default metadata with the editable in the corresponding yaml file
-    editable_metadata_path = Path(__file__).parent / "abdeladim_2023_metadata.yaml"
+    editable_metadata_path = Path(__file__).parent / "hendricks_2024_metadata.yaml"
     editable_metadata = load_dict_from_file(editable_metadata_path)
     metadata = dict_deep_update(metadata, editable_metadata)
 
     # Update metadata with the holographic stimulation data
     if "HolographicStimulation" in converter.data_interface_objects:
-        holographic_stimulation_metadata_path = Path(__file__).parent / "abdeladim_2023_holostim_metadata.yaml"
+        holographic_stimulation_metadata_path = Path(__file__).parent / "hendricks_2024_holostim_metadata.yaml"
         holographic_metadata = load_dict_from_file(holographic_stimulation_metadata_path)
         metadata = dict_deep_update(metadata, holographic_metadata)
 
@@ -94,8 +93,8 @@ def session_to_nwb(
     timezone = ZoneInfo("America/Los_Angeles")  # Time zone for Berkeley, California
     session_start_time = metadata["NWBFile"]["session_start_time"]
     metadata["NWBFile"].update(session_start_time=session_start_time.replace(tzinfo=timezone))
-    metadata["NWBFile"]["experiment_description"]=epoch_name_description_mapping.get(epoch_name)
-    subject_id = subject_id.replace("_","-")
+    metadata["NWBFile"]["experiment_description"] = epoch_name_description_mapping.get(epoch_name)
+    subject_id = subject_id.replace("_", "-")
     metadata["Subject"].update(subject_id=subject_id)
 
     # Each epoch will be saved in a different nwb file but they will have the same session_id.
@@ -119,7 +118,7 @@ if __name__ == "__main__":
     # Parameters for conversion
     root_path = Path("/media/amtra/Samsung_T5/CN_data")
     data_dir_path = root_path / "MouseV1-to-nwb"
-    output_dir_path = root_path / "MouseV1-conversion_nwb/"
+    output_dir_path = root_path / "MouseV1-conversion_nwb/test/"
     stub_test = True
 
     subject_id = "w57_1"

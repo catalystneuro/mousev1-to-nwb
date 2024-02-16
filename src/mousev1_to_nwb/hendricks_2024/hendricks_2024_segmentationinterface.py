@@ -1,13 +1,11 @@
-from neuroconv.datainterfaces.ophys.basesegmentationextractorinterface import BaseSegmentationExtractorInterface
-from roiextractors.extractors.suite2p.suite2psegmentationextractor import Suite2pSegmentationExtractor
-from neuroconv.utils import DeepDict, FolderPathType
+from neuroconv.utils import FolderPathType
 from neuroconv.datainterfaces.ophys.suite2p.suite2pdatainterface import Suite2pSegmentationInterface
-from typing import Optional
 
+from roiextractors.extractors.suite2p.suite2psegmentationextractor import Suite2pSegmentationExtractor
 
-class Abdeladim2023SegmentationInterface(Suite2pSegmentationInterface):
+class Hendricks2024SegmentationInterface(Suite2pSegmentationInterface):
     """
-    Data Interface for writing imaging data for the MouseV1 to NWB file using Abdeladim2023SinglePlaneImagingExtractor.
+    Data Interface for writing imaging data for the MouseV1 to NWB file using Hendricks2024SinglePlaneImagingExtractor.
     """
 
     Extractor = Suite2pSegmentationExtractor

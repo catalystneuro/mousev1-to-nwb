@@ -1,24 +1,26 @@
-from collections import defaultdict
 from copy import deepcopy
+from natsort import natsorted
 from pathlib import Path
 from typing import Optional
-
 import numpy as np
 import pandas as pd
 import h5py
+
 from neuroconv import BaseDataInterface
 from neuroconv.tools.roiextractors.roiextractors import get_default_segmentation_metadata
 from neuroconv.utils import FolderPathType, FilePathType, get_base_schema, get_schema_from_hdmf_class
+
 from pynwb import NWBFile
 from pynwb.device import Device
 from pynwb.ogen import OptogeneticStimulusSite
 from pynwb.ophys import PlaneSegmentation, OpticalChannel
-from natsort import natsorted
+
 from roiextractors.extractors.tiffimagingextractors.scanimagetiff_utils import (
     parse_metadata,
     extract_extra_metadata,
     extract_timestamps_from_file,
 )
+
 from ndx_patterned_ogen import (
     PatternedOptogeneticStimulusTable,
     OptogeneticStimulusTarget,
@@ -57,10 +59,10 @@ def check_optogenetic_stim_data(
                     raise ValueError(f"'{i}' missing from {epoch_name} holographic stimulation data")
 
 
-class Abdeladim2023HolographicStimulationInterface(BaseDataInterface):
+class Hendricks2024HolographicStimulationInterface(BaseDataInterface):
     """
     Data Interface for writing holographic photostimulation data for the MouseV1 to NWB file
-    using Abdeladim2023HolographicStimulationInterface.
+    using Hendricks2024HolographicStimulationInterface.
     """
 
     def __init__(
@@ -116,7 +118,7 @@ class Abdeladim2023HolographicStimulationInterface(BaseDataInterface):
         self._frequency_per_trial = data["hz_per_cell"][:]
         self._n_spike_per_trial = data["spikes_per_cell"][:]
         self._stimulus_time_per_targeted_rois = data["stim_times"][:]
-        self._stimulus_power_per_targeted_rois = data["roi_powers_mW"][:]*1e-3# conversion from mW to W
+        self._stimulus_power_per_targeted_rois = data["roi_powers_mW"][:] * 1e-3  # conversion from mW to W
 
         self.epoch_name = epoch_name
         super().__init__(folder_path=folder_path)
@@ -276,7 +278,7 @@ class Abdeladim2023HolographicStimulationInterface(BaseDataInterface):
             "stimulus_pattern",
             "targets",
             "stimulus_site",
-            "tags"
+            "tags",
         ]
         rows = []
         for trial, hologram_index in enumerate(self._trial_to_stimulation_ids_map):
@@ -312,7 +314,7 @@ class Abdeladim2023HolographicStimulationInterface(BaseDataInterface):
                     trial_start_time = self.trial_start_times[trial]
                     frequency = self._frequency_per_trial[trial]
                     n_spike = self._n_spike_per_trial[trial]
-                    stimulus_power = self._stimulus_power_per_targeted_rois[targeted_roi_indexes] 
+                    stimulus_power = self._stimulus_power_per_targeted_rois[targeted_roi_indexes]
                     stimulus_time = self._stimulus_time_per_targeted_rois[targeted_roi_indexes]
                     start_time = trial_start_time + stimulus_time
                     stop_time = start_time + np.round(n_spike / frequency, decimals=2)
@@ -336,7 +338,7 @@ class Abdeladim2023HolographicStimulationInterface(BaseDataInterface):
                                 [f"trial {trial}"],
                             ]
                             rows.append(row)
-        stimulus_df = pd.DataFrame(rows,columns=colnames)
+        stimulus_df = pd.DataFrame(rows, columns=colnames)
         if len(stimulus_df["start_time"]) == 0:
             print(f"No stimulus onset has been found in {self.epoch_name}")
             print("No PatternedOptogeneticStimulusTable will be created")

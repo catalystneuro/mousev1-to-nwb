@@ -1,5 +1,15 @@
 NWBFile:
-  keywords: [2-photon, calcium imaging, photostimulation, optogenetics, temporal focusing, patterned optogenetics, visual cortex, mouse]
+  keywords:
+    [
+      2-photon,
+      calcium imaging,
+      photostimulation,
+      optogenetics,
+      temporal focusing,
+      patterned optogenetics,
+      visual cortex,
+      mouse,
+    ]
   session_description: Headfixed 2-photon calcium imaging and photostimulation of visual cortex.
   institution: UC Berkeley
   lab: Adesnik
@@ -12,7 +22,7 @@ Subject:
   genotype: SST-Cre/wt;CaMK2-tTA/wt;tetO-GCaMP6s/wt
   age: P120D
   sex: F
-  weight: '0.025' # in the units of kg
+  weight: "0.025" # in the units of kg
   strain: C57BL/6J
 Ophys:
   Device:

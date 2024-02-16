@@ -1,4 +1,4 @@
-# Notes concerning the abdeladim_2023 conversion
+# Notes concerning the hendricks_2024 conversion
 
 
 # Reference papers

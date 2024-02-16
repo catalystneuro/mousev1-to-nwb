@@ -1,13 +1,16 @@
 from typing import Optional
-import h5py
-from neuroconv import BaseDataInterface
-from neuroconv.utils import FilePathType, FolderPathType
-from pynwb import NWBFile
-from pynwb.epoch import TimeIntervals
 from pathlib import Path
 from natsort import natsorted
-from roiextractors.extractors.tiffimagingextractors.scanimagetiff_utils import extract_timestamps_from_file
 import numpy as np
+import h5py
+
+from neuroconv import BaseDataInterface
+from neuroconv.utils import FilePathType, FolderPathType
+
+from pynwb import NWBFile
+from pynwb.epoch import TimeIntervals
+
+from roiextractors.extractors.tiffimagingextractors.scanimagetiff_utils import extract_timestamps_from_file
 
 
 def h5py_to_dict(item):
@@ -22,10 +25,10 @@ def h5py_to_dict(item):
         return None
 
 
-class Abdeladim2023VisualStimuliInterface(BaseDataInterface):
+class Hendricks2024VisualStimuliInterface(BaseDataInterface):
     """
     Data Interface for writing visual stimuli data for the MouseV1 to NWB conversion
-    using Abdeladim2023VisualStimuliInterface.
+    using Hendricks2024VisualStimuliInterface.
     """
 
     def __init__(
@@ -62,10 +65,10 @@ class Abdeladim2023VisualStimuliInterface(BaseDataInterface):
         data = h5py.File(visual_stimulus_file_path, "r")
         if visual_stimulus_type not in data.keys() or visual_stimulus_type is None:
             raise ValueError(
-                    f"'{visual_stimulus_type}' is not a valid visual_stimulus_type"
-                    f" it must be one of the following {list(data.keys())} as defined in {visual_stimulus_file_path}"
-                )
-        else: 
+                f"'{visual_stimulus_type}' is not a valid visual_stimulus_type"
+                f" it must be one of the following {list(data.keys())} as defined in {visual_stimulus_file_path}"
+            )
+        else:
             self.visual_stimulus_type = visual_stimulus_type
 
         data = data[self.visual_stimulus_type]

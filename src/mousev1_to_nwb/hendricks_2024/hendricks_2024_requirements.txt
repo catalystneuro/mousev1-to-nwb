@@ -1,2 +1,4 @@
 roiextractors
-ndx-patterned-ogen @ git+https://github.com/catalystneuro/ndx-patterned-ogen.git
+scanimage-tiff-reader
+ndx-patterned-ogen @ git+https://github.com/catalystneuro/ndx-patterned-ogen.git@main
+neuroconv @ git+https://github.com/catalystneuro/neuroconv.git@main

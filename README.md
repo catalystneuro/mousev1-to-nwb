@@ -10,7 +10,7 @@ From a terminal (note that conda should install one in your system) you can do t
 git clone https://github.com/catalystneuro/mousev1-to-nwb
 cd mousev1-to-nwb
 conda env create --file make_env.yml
-conda activate mousev1-to-nwb-env
+conda activate mousev1_to_nwb_env
 ```
 
 This creates a [conda environment](https://docs.conda.io/projects/conda/en/latest/user-guide/concepts/environments.html) which isolates the conversion code from your system libraries.  We recommend that you run all your conversion related tasks and analysis from the created environment in order to minimize issues related to package dependencies.
